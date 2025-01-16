@@ -4,16 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Brian2694\Toastr\Facades\Toastr;
 use Intervention\Image\Facades\Image;
 use App\Models\ExpenseCategories;
+use App\Models\ExpenseSubcategory;
 use App\Models\Expense;
-use File;
-use DB;
+use App\Models\Warehouse;
 
 class ExpenseController extends Controller
 {
-  
+    public function getSubcategory(Request $request)
+    {
+        $subcategory = DB::table("expense_subcategories")
+            ->where("category_id", $request->category_id)
+            ->pluck('name', 'id');
+        return response()->json($subcategory);
+    }
+
     function __construct()
     {
         $this->middleware('permission:expense-list|expense-create|expense-edit|expense-delete', ['only' => ['index','store']]);
@@ -30,7 +39,8 @@ class ExpenseController extends Controller
     public function create()
     {
         $categories = ExpenseCategories::where('status',1)->get();
-        return view('backEnd.expense.create', compact('categories'));
+        $warehouses = Warehouse::where('status', 1)->get();
+        return view('backEnd.expense.create', compact('categories', 'warehouses'));
     }
     public function store(Request $request)
     {
@@ -39,22 +49,45 @@ class ExpenseController extends Controller
             'name' => 'required',
             'status' => 'required',
         ]);
-        
-      
+
         $input = $request->all();
+
+        // new image
+        $image = $request->file('image');
+        if ($image) {
+            // image with intervention
+            $name = time() . '-' . $image->getClientOriginalName();
+            $name = preg_replace('"\.(jpg|jpeg|png|webp)$"', '.webp', $name);
+            $name = strtolower(preg_replace('/\s+/', '-', $name));
+            $uploadpath = 'public/uploads/expense/';
+            $imageUrl = $uploadpath . $name;
+            $img = Image::make($image->getRealPath());
+            $img->encode('webp', 90);
+            $width = 100;
+            $height = 100;
+            $img->height() > $img->width() ? $width = null : $height = null;
+            $img->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+            $img->save($imageUrl);
+            $input['image'] = $imageUrl;
+        }
 
         Expense::create($input);
         Toastr::success('Success','Data insert successfully');
         return redirect()->route('expense.index');
     }
-    
+
     public function edit($id)
     {
         $edit_data = Expense::find($id);
+        // return $edit_data;
         $categories = ExpenseCategories::select('id','name')->get();
-        return view('backEnd.expense.edit',compact('edit_data','categories'));
+        $subcategories = ExpenseSubcategory::where('category_id', $edit_data->expense_cat_id)->get();
+        $warehouses = Warehouse::where('status', 1)->get();
+        return view('backEnd.expense.edit',compact('edit_data','categories', 'warehouses', 'subcategories'));
     }
-    
+
     public function update(Request $request)
     {
         $this->validate($request, [
@@ -63,14 +96,38 @@ class ExpenseController extends Controller
         $update_data = Expense::find($request->id);
         $input = $request->all();
 
+        // new image
+        $image = $request->file('image');
+        if ($image) {
+            // image with intervention
+            $name = time() . '-' . $image->getClientOriginalName();
+            $name = preg_replace('"\.(jpg|jpeg|png|webp)$"', '.webp', $name);
+            $name = strtolower(preg_replace('/\s+/', '-', $name));
+            $uploadpath = 'public/uploads/expense/';
+            $imageUrl = $uploadpath . $name;
+            $img = Image::make($image->getRealPath());
+            $img->encode('webp', 90);
+            $width = 100;
+            $height = 100;
+            $img->height() > $img->width() ? $width = null : $height = null;
+            $img->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+            $img->save($imageUrl);
+            $input['image'] = $imageUrl;
+            File::delete($update_data->image);
+        } else {
+            $input['image'] = $update_data->image;
+        }
+
         $input['status'] = $request->status?1:0;
-        
+
         $update_data->update($input);
 
         Toastr::success('Success','Data update successfully');
         return redirect()->route('expense.index');
     }
- 
+
     public function inactive(Request $request)
     {
         $inactive = Expense::find($request->hidden_id);

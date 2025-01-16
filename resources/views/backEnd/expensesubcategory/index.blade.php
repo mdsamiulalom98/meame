@@ -1,6 +1,5 @@
 @extends('backEnd.layouts.master')
-@section('title','Customer Manage')
-
+@section('title','Expense Subcategory Manage')
 @section('css')
 <link href="{{asset('/public/backEnd/')}}/assets/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
 <link href="{{asset('/public/backEnd/')}}/assets/libs/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" type="text/css" />
@@ -16,9 +15,9 @@
         <div class="col-12">
             <div class="page-title-box">
                 <div class="page-title-right">
-                    <a href="{{route('customers.create')}}" class="btn btn-primary rounded-pill">Create</a>
+                    <a href="{{route('expensesubcategories.create')}}" class="btn btn-primary rounded-pill">Create</a>
                 </div>
-                <h4 class="page-title">Customer Manage</h4>
+                <h4 class="page-title">Expense Subcategory Manage</h4>
             </div>
         </div>
     </div>
@@ -27,61 +26,53 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <!--<div class="row mb-3">-->
-                <!--    <div class="col-sm-8"></div>-->
-                <!--    <div class="col-sm-4">-->
-                <!--        <form class="custom_form">-->
-                <!--            <div class="form-group">-->
-                <!--                <input type="text" value="{{request()->get('keyword')}}" name="keyword" placeholder="Search">-->
-                <!--                <button class="btn  rounded-pill btn-info">Search</button>-->
-                <!--            </div>-->
-                <!--        </form>-->
-                <!--    </div>-->
-                <!--</div>-->
-                <div class="table-responsive ">
-                    <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
                     <thead>
                         <tr>
                             <th>SL</th>
                             <th>Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
+                            <th>Subcategory</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
 
-
                     <tbody>
-                        @foreach($show_data as $key=>$value)
+                        @foreach($data as $key=>$value)
                         <tr>
                             <td>{{$loop->iteration}}</td>
-                            <td>{{$value->name}}</td>
-                            <td>{{$value->phone}}</td>
-                            <td>{{$value->email}}</td>
-                            <td>@if($value->status=='active')<span class="badge bg-soft-success text-success">Active</span> @else <span class="badge bg-soft-danger text-danger">{{$value->status}}</span> @endif</td>
+                            <td>
+                                @if ($value->front_view == 1)
+                                <span class="btn btn-dark">{{$value->name}}</span>
+                                @else
+                                <span >{{$value->name}}</span>
+                                @endif
+                            </td>
+                            <td>{{ $value->category->name ?? '' }}</td>
+
+                            <td>
+                                @if($value->status==1)
+                                <span class="badge bg-soft-success text-success">Active</span>
+                                @else
+                                <span class="badge bg-soft-danger text-danger">Inactive</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="button-list">
-                                    @if($value->status == 'active')
-                                    <form method="post" action="{{route('customers.inactive')}}" class="d-inline">
+                                    @if($value->status == 1)
+                                    <form method="post" action="{{route('expensesubcategories.inactive')}}" class="d-inline">
                                     @csrf
                                     <input type="hidden" value="{{$value->id}}" name="hidden_id">
                                     <button type="button" class="btn btn-xs  btn-secondary waves-effect waves-light change-confirm"><i class="fe-thumbs-down"></i></button></form>
                                     @else
-                                    <form method="post" action="{{route('customers.active')}}" class="d-inline">
+                                    <form method="post" action="{{route('expensesubcategories.active')}}" class="d-inline">
                                         @csrf
                                     <input type="hidden" value="{{$value->id}}" name="hidden_id">
                                     <button type="button" class="btn btn-xs  btn-success waves-effect waves-light change-confirm"><i class="fe-thumbs-up"></i></button></form>
                                     @endif
 
-                                    <a href="{{route('customers.edit',$value->id)}}" class="btn btn-xs btn-primary waves-effect waves-light"><i class="fe-edit-1"></i></a>
+                                    <a href="{{route('expensesubcategories.edit',$value->id)}}" class="btn btn-xs btn-primary waves-effect waves-light"><i class="fe-edit-1"></i></a>
 
-                                    <a href="{{route('customers.profile',['id'=>$value->id])}}" class="btn btn-xs btn-blue waves-effect waves-light"><i class="fe-eye"></i></a>
-
-                                    <form method="post" action="{{route('customers.adminlog')}}" class="d-inline" target="_blank">
-                                        @csrf
-                                    <input type="hidden" value="{{$value->id}}" name="hidden_id">
-                                    <button type="button" class="btn btn-xs btn-pink waves-effect waves-light change-confirm" title="Login as customer"><i class="fe-log-in"></i></button></form>
 
                                 </div>
                             </td>
@@ -89,10 +80,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                </div>
-                <div class="custom-paginate">
-                    {{$show_data->links('pagination::bootstrap-4')}}
-                </div>
+
             </div> <!-- end card body-->
         </div> <!-- end card -->
     </div><!-- end col-->

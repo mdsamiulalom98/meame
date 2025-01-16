@@ -78,14 +78,16 @@
                             <!-- custome address -->
                             <div class="col-sm-6">
                                 <div class="row">
-                                     <div class="col-sm-12">
+                                    <div class="col-sm-12">
                                         <div class="form-group mb-2">
                                             <select type="category_id" id="category_id"
-                                                class="form-control @error('category_id') is-invalid @enderror" name="category_id"
-                                                required>
+                                                class="form-control @error('category_id') is-invalid @enderror"
+                                                name="category_id" required>
                                                 <option value="">Select Category....</option>
                                                 @foreach ($ordercategory as $key => $value)
-                                                    <option value="{{ $value->id }}" {{$value->id == $order->category_id ? 'selected' : ''}}>{{ $value->name }}</option>
+                                                    <option value="{{ $value->id }}"
+                                                        {{ $value->id == $order->category_id ? 'selected' : '' }}>
+                                                        {{ $value->name }}</option>
                                                 @endforeach
 
                                             </select>
@@ -144,7 +146,7 @@
                                                 <option value="">Select....</option>
                                                 @foreach ($shippingcharge as $key => $value)
                                                     <option value="{{ $value->id }}"
-                                                        @if ($shippinginfo->area  == $value->name) selected @endif>
+                                                        @if ($shippinginfo->area == $value->name) selected @endif>
                                                         {{ $value->name }}</option>
                                                 @endforeach
 
@@ -182,6 +184,9 @@
                                             $subtotal = str_replace(',', '', $subtotal);
                                             $subtotal = str_replace('.00', '', $subtotal);
                                             $shipping = Session::get('pos_shipping');
+                                            $old_due = Session::get('old_due') ?? 0;
+                                            $paid = Session::get('cpaid') ?? 0;
+                                            $additional_shipping = Session::get('additional_shipping') ?? 0;
                                             $total_discount =
                                                 Session::get('pos_discount') + Session::get('product_discount');
                                         @endphp
@@ -191,7 +196,7 @@
                                         </tr>
                                         <tr>
                                             <td>Shipping Fee</td>
-                                            <td>{{ $shipping }}</td>
+                                            <td>{{ $shipping + $additional_shipping }}</td>
                                         </tr>
                                         <tr>
                                             <td>Discount</td>
@@ -199,14 +204,32 @@
                                         </tr>
                                         <tr>
                                             <td>Paid</td>
-                                            <td>{{ $order->paid }}</td>
+                                            <td>{{ $paid }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Old Due</td>
+                                            <td>{{ $old_due }}</td>
                                         </tr>
                                         <tr>
                                             <td>Due Bill</td>
-                                           <td>{{ $subtotal + $shipping - ($total_discount + $order->paid) }}</td>
+                                            <td>{{ $subtotal + $shipping + $additional_shipping + $old_due - ($total_discount + $paid) }}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="col-sm-12">
+                                    <div class="form-group mb-3">
+                                        <label for="admin_note" class="form-label">Description*</label>
+                                        <textarea type="text" class=" form-control @error('admin_note') is-invalid @enderror" name="admin_note"
+                                            rows="6" value="{{ $order->admin_note ?? old('admin_note') }}" id="admin_note" required=""></textarea>
+                                        @error('admin_note')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <!-- col-end -->
                             </div>
                             <div>
                                 <input type="submit" class="btn btn-success" value="Update Order" />
@@ -303,13 +326,30 @@
         });
         $("#paid").change(function() {
             var amount = $(this).val();
+            var phone = $("#phone").val();
             $.ajax({
                 cache: false,
                 type: "GET",
                 data: {
-                    'amount': amount
+                    'amount': amount,
+                    'phone': phone,
                 },
                 url: "{{ route('admin.order.paid') }}",
+                dataType: "json",
+                success: function(cartinfo) {
+                    return cart_content() + cart_details();
+                }
+            });
+        });
+        $("#additional_shipping").change(function() {
+            var amount = $(this).val();
+            $.ajax({
+                cache: false,
+                type: "GET",
+                data: {
+                    'amount': amount,
+                },
+                url: "{{ route('admin.order.additional_shipping') }}",
                 dataType: "json",
                 success: function(cartinfo) {
                     return cart_content() + cart_details();

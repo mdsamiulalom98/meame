@@ -6,7 +6,7 @@
 @endsection
 @section('content')
 <div class="container-fluid">
-    
+
     <!-- start page title -->
     <div class="row">
         <div class="col-12">
@@ -17,8 +17,8 @@
                 <h4 class="page-title">Payment Entry</h4>
             </div>
         </div>
-    </div>       
-    <!-- end page title --> 
+    </div>
+    <!-- end page title -->
    <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card">
@@ -27,8 +27,8 @@
                     @csrf
                     <input type="hidden" name="user" value="{{request()->get('user')}}">
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
-                            <label for="title" class="form-label">Title *</label>
+                        <div class="form-group mb-2">
+                            <label for="title" class="form-label">Payment Title *</label>
                             <input type="text" class="form-control @error('title') is-invalid @enderror" name="title" value="{{ old('title') }}" id="title" required="">
                             @error('title')
                                 <span class="invalid-feedback" role="alert">
@@ -40,7 +40,7 @@
                     <!-- col-end -->
                     <div class="col-sm-12">
                         <div class="form-group mb-2">
-                             <label for="user_id" class="form-label">Users *</label>
+                             <label for="user_id" class="form-label">{{ request()->get('user') == 'supplier' ? 'Suppliers' : 'Customers' }} *</label>
                             <select type="text" id="user_id" class="form-control @error('user_id') is-invalid @enderror select2"  name="user_id" required>
                                 <option value="">Select..</option>
                                 @foreach($users as $user)
@@ -57,7 +57,7 @@
                     </div>
                     <!-- col-end -->
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-2">
                             <label for="amount" class="form-label">Amount *</label>
                             <input type="text" class="form-control @error('amount') is-invalid @enderror" name="amount" value="{{ old('amount') }}" id="amount" required="">
                             @error('amount')
@@ -77,7 +77,7 @@
                                 <option value="bKash">bKash</option>
                                 <option value="Nagad">Nagad</option>
                                 <option value="Rocket">Rocket</option>
-                                <option value="Cash">Cash</option>
+                                <option value="Bank">Bank</option>
                                 <option value="Cash">Cash</option>
                             </select>
                             @error('method')
@@ -90,7 +90,7 @@
                     </div>
                     <!-- col-end -->
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-2">
                             <label for="sender" class="form-label">Sender </label>
                             <input type="text" class="form-control @error('sender') is-invalid @enderror" name="sender" value="{{ old('sender') }}" id="sender">
                             @error('sender')
@@ -102,7 +102,7 @@
                     </div>
                     <!-- col-end -->
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-2">
                             <label for="trx_id" class="form-label">Transaction ID </label>
                             <input type="text" class="form-control @error('trx_id') is-invalid @enderror" name="trx_id" value="{{ old('trx_id') }}" id="trx_id">
                             @error('trx_id')
@@ -114,7 +114,7 @@
                     </div>
                     <!-- col-end -->
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-2">
                             <label for="carrier" class="form-label">Carrier </label>
                             <input type="text" class="form-control @error('carrier') is-invalid @enderror" name="carrier" value="{{ old('carrier') }}" id="carrier">
                             @error('carrier')
@@ -126,7 +126,7 @@
                     </div>
                     <!-- col-end -->
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-2">
                             <label for="ref_id" class="form-label">Refference </label>
                             <input type="text" class="form-control @error('ref_id') is-invalid @enderror" name="ref_id" value="{{ old('ref_id') }}" id="ref_id">
                             @error('ref_id')
@@ -138,7 +138,7 @@
                     </div>
                     <!-- col-end -->
                     <div class="col-sm-12">
-                        <div class="form-group mb-3">
+                        <div class="form-group mb-2">
                             <label for="description" class="form-label">Description </label>
                             <textarea type="text" class="form-control @error('description') is-invalid @enderror" name="description" value="{{ old('description') }}" id="description"></textarea>
                             @error('description')

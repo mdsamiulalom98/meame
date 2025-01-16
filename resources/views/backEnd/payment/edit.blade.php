@@ -6,7 +6,7 @@
 @endsection
 @section('content')
 <div class="container-fluid">
-    
+
     <!-- start page title -->
     <div class="row">
         <div class="col-12">
@@ -17,8 +17,8 @@
                 <h4 class="page-title">Payment Edit</h4>
             </div>
         </div>
-    </div>       
-    <!-- end page title --> 
+    </div>
+    <!-- end page title -->
    <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card">
@@ -28,7 +28,7 @@
                     <input type="hidden" name="id" value="{{$edit_data->id}}">
                     <div class="col-sm-12">
                         <div class="form-group mb-3">
-                            <label for="title" class="form-label">Title *</label>
+                            <label for="title" class="form-label">Payment Title *</label>
                             <input type="text" class="form-control @error('title') is-invalid @enderror" name="title" value="{{ $edit_data->title }}" id="title" required="">
                             @error('title')
                                 <span class="invalid-feedback" role="alert">
@@ -40,11 +40,11 @@
                     <!-- col-end -->
                     <div class="col-sm-12">
                         <div class="form-group mb-2">
-                             <label for="user_id" class="form-label">Supplier *</label>
+                             <label for="user_id" class="form-label">{{ $edit_data->user == 'supplier' ? 'Supplier' : 'Customer'}} *</label>
                             <select type="text" id="user_id" class="form-control @error('user_id') is-invalid @enderror select2"  name="user_id" required>
-                                <option value="">Select Supplier..</option>
-                                @foreach($suppliers as $supplier)
-                                <option value="{{$supplier->id}}" @if($supplier->id == $edit_data->user_id) selected @endif>{{$supplier->name}} - {{$supplier->phone}}</option>
+                                <option value="">Select {{ $edit_data->user == 'supplier' ? 'Supplier' : 'Customer'}}..</option>
+                                @foreach($users as $user)
+                                <option value="{{$user->id}}" @if($user->id == $edit_data->user_id) selected @endif>{{$user->name}} - {{$user->phone}}</option>
                                 @endforeach
                             </select>
                             @error('user_id')
@@ -78,7 +78,7 @@
                                 <option value="Nagad"  @if($edit_data->method == 'Nagad') selected @endif>Nagad</option>
                                 <option value="Rocket"  @if($edit_data->method == 'Rocket') selected @endif>Rocket</option>
                                 <option value="Bank"  @if($edit_data->method == 'Bank') selected @endif>Bank</option>
-                                <option value="Cash"  @if($edit_data->method == 'Cash') selected @endif>Cash</option>
+                                <option value="Cash"  @if($edit_data->method == 'cash') selected @endif>Cash</option>
                             </select>
                             @error('method')
                                 <span class="invalid-feedback" role="alert">

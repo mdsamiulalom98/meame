@@ -22,13 +22,12 @@
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <form action="{{route('customers.update')}}" method="POST" class=row data-parsley-validate=""  enctype="multipart/form-data">
+                <form action="{{route('customers.store')}}" method="POST" class=row data-parsley-validate=""  enctype="multipart/form-data">
                     @csrf
-                    <input type="hidden" value="{{$edit_data->id}}" name="hidden_id">
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
                             <label for="name" class="form-label">Name *</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ $edit_data->name}}" id="name" required="">
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" id="name" required="">
                             @error('name')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -40,7 +39,7 @@
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
                             <label for="phone" class="form-label">Phone *</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ $edit_data->phone}}"  id="phone" required="">
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}"  id="phone" required="">
                             @error('phone')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -52,7 +51,7 @@
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
                             <label for="email" class="form-label">Email *</label>
-                            <input type="text" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $edit_data->email}}"  id="email" required="">
+                            <input type="text" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}"  id="email" required="">
                             @error('email')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -76,7 +75,7 @@
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
                             <label for="address" class="form-label">Address *</label>
-                            <input type="text" class="form-control @error('address') is-invalid @enderror" name="address" value="{{ $edit_data->address }}"  id="address" required="">
+                            <input type="text" class="form-control @error('address') is-invalid @enderror" name="address" value="{{ old('address') }}"  id="address" required="">
                             @error('address')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -88,7 +87,7 @@
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
                             <label for="due" class="form-label">Due *</label>
-                            <input type="number" class="form-control @error('due') is-invalid @enderror" name="due" value="{{ $edit_data->due}}"  id="due" required="">
+                            <input type="number" class="form-control @error('due') is-invalid @enderror" name="due" value="{{ old('due') }}"  id="due" required="">
                             @error('due')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -100,8 +99,8 @@
                     <div class="col-sm-6 mb-3">
                         <div class="form-group">
                             <label for="image" class="form-label">Image *</label>
-                            <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" value="{{ $edit_data->image }}"  id="image" >
-                            <img src="{{asset($edit_data->image)}}" alt="" class="backend-image">
+                            <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" value="{{ old('image') }}"  id="image" >
+
                             @error('image')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -111,12 +110,11 @@
                     </div>
                     <!-- col end -->
 
-
                     <div class="col-sm-6 mb-3">
                         <div class="form-group">
                             <label for="status" class="d-block form-label">Status</label>
                             <label class="switch">
-                              <input type="checkbox" value="1" name="status" @if($edit_data->status=='active')checked @endif>
+                              <input type="checkbox" value="1" name="status" >
                               <span class="slider round"></span>
                             </label>
                             @error('status')

@@ -23,11 +23,11 @@ class PaymentController extends Controller
     }
     public function create(Request $request){
         if($request->user == 'supplier'){
-            $users = DB::table('suppliers')->select('id','name','phone')->get(); 
+            $users = DB::table('suppliers')->select('id','name','phone')->get();
         }else{
             $users = DB::table('customers')->select('id','name','phone')->get();
         }
-        
+
        return view('backEnd.payment.create',compact('users'));
     }
     public function store(Request $request){
@@ -61,9 +61,13 @@ class PaymentController extends Controller
         return redirect()->route('admin.payment.index');
     }
     public function edit($id){
-        $suppliers = DB::table('suppliers')->select('id','name','phone')->get();
         $edit_data = Transaction::find($id);
-       return view('backEnd.payment.edit',compact('suppliers','edit_data'));
+        if($edit_data->user == 'customer') {
+            $users = DB::table('customers')->select('id','name','phone')->get();
+        } else {
+            $users = DB::table('suppliers')->select('id','name','phone')->get();
+        }
+       return view('backEnd.payment.edit',compact('users','edit_data'));
     }
     public function update(Request $request){
         $this->validate($request, [

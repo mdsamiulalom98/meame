@@ -10,10 +10,14 @@ class Expense extends Model
     use HasFactory;
 
     protected $guarded = [];
-  
+
     public function category() {
         return $this->hasOne(ExpenseCategories::class, 'id', 'expense_cat_id');
     }
-    
-    
+
+    public function subcategory() {
+        return $this->hasOne(ExpenseSubcategory::class, 'id', 'subcategory_id');
+    }
+
+
 }

@@ -42,27 +42,56 @@ class OrderController extends Controller
     }
     public function search(Request $request)
     {
-        $products = Product::select('id', 'name', 'slug', 'new_price', 'old_price')
+        $products = Product::select('id', 'name', 'slug', 'new_price', 'old_price', 'category_id', 'subcategory_id', 'childcategory_id')
             ->where('status', 1)
             ->with('image');
-        if ($request->keyword) {
-            $products = $products->where('name', 'LIKE', '%' . $request->keyword . "%")->orWhere('pro_barcode', 'LIKE', '%' . $request->keyword . "%");
-        }
-        $products = $products->get();
 
-        if (empty($request->keyword)) {
-            $products = [];
+        if ($request->category) {
+            $products = $products->where('category_id', $request->category);
         }
-        return view('backEnd.order.search', compact('products'));
+
+        if ($request->subcategory) {
+            $products = $products->where('subcategory_id', $request->subcategory);
+        }
+
+        if ($request->childcategory) {
+            $products = $products->where('childcategory_id', $request->childcategory);
+        }
+
+        $products = $products->pluck('name', 'id');
+        return response()->json($products);
+    }
+
+    public function office_orders() {
+        $show_data = Order::where('order_type', 0)->paginate(100);
+        $order_status = OrderStatus::where('slug', 'delivered')->withCount('orders')->first();
+        $users = User::get();
+        $steadfast = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
+        $pathao_info = Courierapi::where(['status' => 1, 'type' => 'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
+        // pathao courier
+        if ($pathao_info) {
+            $response = Http::get($pathao_info->url . '/api/v1/countries/1/city-list');
+            $pathaocities = $response->json();
+            $response2 = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $pathao_info->token,
+                'Content-Type' => 'application/json',
+            ])->get($pathao_info->url . '/api/v1/stores');
+            $pathaostore = $response2->json();
+        } else {
+            $pathaocities = [];
+            $pathaostore = [];
+        }
+        return view('backEnd.order.index', compact('show_data', 'order_status', 'users', 'steadfast', 'pathaostore', 'pathaocities'));
     }
     public function index($slug, Request $request)
     {
+        // Order::query()->update(['order_type' => 1]);
         if ($slug == 'all') {
             $order_status = (object) [
                 'name' => 'All',
-                'orders_count' => Order::count(),
+                'orders_count' => Order::where('order_type', 1)->count(),
             ];
-            $show_data = Order::latest()->with('shipping', 'status');
+            $show_data = Order::where('order_type', 1)->latest()->with('shipping', 'status');
             if ($request->keyword) {
                 $show_data = $show_data->where(function ($query) use ($request) {
                     $query->orWhere('invoice_id', 'LIKE', '%' . $request->keyword . '%')
@@ -74,7 +103,7 @@ class OrderController extends Controller
             $show_data = $show_data->paginate(100);
         } else {
             $order_status = OrderStatus::where('slug', $slug)->withCount('orders')->first();
-            $show_data = Order::where(['order_status' => $order_status->id])->latest()->with('shipping', 'status')->paginate(100);
+            $show_data = Order::where(['order_status' => $order_status->id, 'order_type' => 1])->latest()->with('shipping', 'status')->paginate(100);
         }
         $users = User::get();
         $steadfast = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
@@ -159,9 +188,6 @@ class OrderController extends Controller
             Toastr::error($response['message'], 'Courier Order Faild');
             return redirect()->back();
         }
-
-
-
     }
 
     public function invoice($invoice_id)
@@ -247,7 +273,7 @@ class OrderController extends Controller
                     'warehouse_id' => $request->warehouse_id,
                     'product_id' => $order_details->product_id
                 ])->first();
-            
+
                 if ($warehousestock) {
                     if ($warehousestock->stock >= $order_details->qty) {
                         $warehousestock->stock -= $order_details->qty;
@@ -279,7 +305,6 @@ class OrderController extends Controller
             $transaction->amount = $order->amount;
             $transaction->method = 'cash';
             $transaction->save();
-
         }
         if ($request->status == 7) {
 
@@ -327,23 +352,20 @@ class OrderController extends Controller
         Toastr::success('Success', 'Order item replace successfully');
         return back();
     }
-
     public function destroy(Request $request)
     {
-        $order = Order::where('id', $request->id)->delete();
-        $order_details = OrderDetails::where('order_id', $request->id)->delete();
-        $shipping = Shipping::where('order_id', $request->id)->delete();
-        $payment = Payment::where('order_id', $request->id)->delete();
+        Order::where('id', $request->id)->delete();
+        OrderDetails::where('order_id', $request->id)->delete();
+        Shipping::where('order_id', $request->id)->delete();
+        Payment::where('order_id', $request->id)->delete();
         Toastr::success('Success', 'Order delete success successfully');
         return redirect()->back();
     }
-
     public function order_assign(Request $request)
     {
-        $products = Order::whereIn('id', $request->input('order_ids'))->update(['user_id' => $request->user_id]);
+        Order::whereIn('id', $request->input('order_ids'))->update(['user_id' => $request->user_id]);
         return response()->json(['status' => 'success', 'message' => 'Order user id assign']);
     }
-
     public function order_status(Request $request)
     {
         $orders = Order::whereIn('id', $request->input('order_ids'))->update(['order_status' => $request->order_status]);
@@ -456,15 +478,17 @@ class OrderController extends Controller
     }
     public function order_create()
     {
+        $categories = Category::get();
         $products = Product::select('id', 'name', 'new_price', 'product_code')->where(['status' => 1])->get();
         Cart::instance('pos_shopping')->destroy();
         $cartinfo = Cart::instance('pos_shopping')->content();
         $shippingcharge = ShippingCharge::where('status', 1)->get();
         $ordercategory = OrderCategory::where('status', 1)->get();
-        return view('backEnd.order.create', compact('products', 'cartinfo', 'shippingcharge','ordercategory'));
+        return view('backEnd.order.create', compact('categories', 'products', 'cartinfo', 'shippingcharge', 'ordercategory'));
     }
 
-    public function order_store(Request $request){
+    public function order_store(Request $request)
+    {
         if ($request->guest_customer) {
             $this->validate($request, [
                 'guest_customer' => 'required',
@@ -498,6 +522,7 @@ class OrderController extends Controller
         $subtotal = str_replace(',', '', $subtotal);
         $subtotal = str_replace('.00', '', $subtotal);
         $discount = Session::get('pos_discount') + Session::get('product_discount');
+        $additional_shipping = Session::get('additional_shipping') ?? 0;
         if ($request->area == 3) {
             $shippingfee = 0;
             $shippingarea = 'Pos Area';
@@ -526,15 +551,17 @@ class OrderController extends Controller
         // order data save
         $order = new Order();
         $order->invoice_id = rand(11111, 99999);
-        $order->amount = ($subtotal + $shippingfee) - $discount;
-        $order->discount = $discount ? $discount : 0;
+        $order->amount = ($subtotal + $shippingfee + $additional_shipping) - $discount;
+        $order->discount = $discount ?? 0;
         $order->shipping_charge = $shippingfee;
+        $order->additional_shipping = $additional_shipping;
         $order->customer_id = $customer_id;
         $order->paid = $request->paid;
         $order->due = $order->amount - $request->paid;
-        $order->order_status = 1;
+        $order->order_status = 5;
+        $order->order_type = 0;
         $order->category_id = $request->category_id;
-        $order->note = $request->note;
+        $order->admin_note = $request->admin_note;
         $order->save();
 
         // shipping data save
@@ -590,9 +617,11 @@ class OrderController extends Controller
         Session::forget('pos_discount');
         Session::forget('product_discount');
         Session::forget('cpaid');
+        Session::forget('additional_shipping');
+        Session::forget('old_due');
 
         Toastr::success('Thanks, Your order place successfully', 'Success!');
-        return redirect('admin/order/pending');
+        return redirect()->route('admin.office.orders');
     }
     public function cart_add(Request $request)
     {
@@ -677,7 +706,7 @@ class OrderController extends Controller
 
     public function cart_clear(Request $request)
     {
-        $cartinfo = Cart::instance('pos_shopping')->destroy();
+        Cart::instance('pos_shopping')->destroy();
         Session::forget('pos_shipping');
         Session::forget('pos_discount');
         Session::forget('product_discount');
@@ -693,6 +722,9 @@ class OrderController extends Controller
         $shippinginfo = Shipping::where('order_id', $order->id)->first();
         Session::put('product_discount', $order->discount);
         Session::put('pos_shipping', $order->shipping_charge);
+        Session::put('cpaid', $order->paid);
+        Session::put('additional_shipping', $order->additional_shipping);
+        Session::put('old_due', $order->customer->due ?? 0);
         $orderdetails = OrderDetails::where('order_id', $order->id)->get();
         foreach ($orderdetails as $ordetails) {
             $cartinfo = Cart::instance('pos_shopping')->add([
@@ -709,7 +741,7 @@ class OrderController extends Controller
             ]);
         }
         $cartinfo = Cart::instance('pos_shopping')->content();
-        return view('backEnd.order.edit', compact('products', 'cartinfo', 'shippingcharge', 'shippinginfo', 'order','ordercategory'));
+        return view('backEnd.order.edit', compact('products', 'cartinfo', 'shippingcharge', 'shippinginfo', 'order', 'ordercategory'));
     }
 
     public function order_update(Request $request)
@@ -730,6 +762,7 @@ class OrderController extends Controller
         $subtotal = str_replace(',', '', $subtotal);
         $subtotal = str_replace('.00', '', $subtotal);
         $discount = Session::get('pos_discount') + Session::get('product_discount');
+        $additional_shipping = Session::get('additional_shipping') ?? 0;
         if ($request->area == 3) {
             $shippingfee = 0;
             $shippingarea = 'Pos Area';
@@ -759,15 +792,15 @@ class OrderController extends Controller
         $order = Order::where('id', $request->order_id)->first();
         $order->amount = ($subtotal + $shippingfee) - ($discount);
         $order->paid = $request->paid;
-        $order->due  = $order->amount - $request->paid;
+        $order->due = $order->amount - $request->paid;
         $order->discount = $discount ? $discount : 0;
+        $order->additional_shipping = $additional_shipping;
         $order->shipping_charge = $shippingfee;
         $order->customer_id = $customer_id;
         $order->category_id = $request->category_id;
         $order->order_status = 1;
-        $order->note = $request->note;
+        $order->admin_note = $request->admin_note;
         $order->save();
-
 
         $shipping = Shipping::updateOrCreate(
             ['order_id' => $request->order_id],  // Search criteria
@@ -825,13 +858,15 @@ class OrderController extends Controller
         Session::forget('pos_shipping');
         Session::forget('pos_discount');
         Session::forget('product_discount');
+        Session::forget('old_due');
+        Session::forget('additional_shipping');
         Toastr::success('Thanks, Your order place successfully', 'Success!');
         return redirect('admin/order/pending');
     }
 
-
-    public function order_report(Request $request){
-        $sale_category = OrderCategory::select('id','name')->where(['status'=>1])->get();
+    public function order_report(Request $request)
+    {
+        $sale_category = OrderCategory::select('id', 'name')->where(['status' => 1])->get();
         $orders = OrderDetails::with('shipping', 'order')->whereHas('order', function ($query) {
             $query->where('order_status', 5);
         });
@@ -850,7 +885,7 @@ class OrderController extends Controller
         $total_item = $orders->sum('qty');
         $total_sales = $orders->sum(\DB::raw('sale_price * qty'));
         $orders = $orders->paginate(100);
-        return view('backEnd.reports.order', compact('orders', 'total_purchases', 'total_item', 'total_sales','sale_category'));
+        return view('backEnd.reports.order', compact('orders', 'total_purchases', 'total_item', 'total_sales', 'sale_category'));
     }
     public function return_report(Request $request)
     {
@@ -960,7 +995,6 @@ class OrderController extends Controller
             $total_sales = OrderDetails::whereHas('order', function ($query) {
                 $query->where('order_status', 5);
             })->sum(\DB::raw('sale_price * qty'));
-
         }
 
         return view('backEnd.reports.loss_profit', compact('total_expense', 'total_purchase', 'total_sales'));
@@ -968,9 +1002,16 @@ class OrderController extends Controller
     public function order_paid(Request $request)
     {
         $amount = $request->amount;
+        $customer = Customer::where('phone', $request->phone)->first();
+        $due = $customer->due ?? 0;
         Session::put('cpaid', $amount);
+        Session::put('old_due', $due);
         return response()->json($amount);
     }
-
-
+    public function additional_shipping(Request $request)
+    {
+        $amount = $request->amount;
+        Session::put('additional_shipping', $amount);
+        return response()->json($amount);
+    }
 }

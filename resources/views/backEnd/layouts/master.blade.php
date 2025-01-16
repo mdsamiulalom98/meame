@@ -301,6 +301,22 @@
                             </div>
                         </li>
                         <!-- nav items -->
+                        <li>
+                            <a href="#sidebar-office-orders" data-bs-toggle="collapse">
+                                <i data-feather="shopping-cart"></i>
+                                <span> Office Orders </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse" id="sidebar-office-orders">
+                                <ul class="nav-second-level">
+                                    <li>
+                                        <a href="{{ route('admin.office.orders') }}"><i
+                                                data-feather="file-plus"></i> All Order</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <!-- nav items -->
 
                         <li>
                             <a href="#siebar-purchase" data-bs-toggle="collapse">
@@ -426,7 +442,7 @@
                                 <ul class="nav-second-level">
                                     <li>
                                         <a href="{{ route('asset.categories.index') }}"><i data-feather="file-plus"></i> Asset Categories</a>
-                                    </li> 
+                                    </li>
                                     <li>
                                         <a href="{{ route('asset.index') }}"><i data-feather="file-plus"></i> Asset Create</a>
                                     </li>
@@ -623,6 +639,10 @@
                                     <li>
                                         <a href="{{ route('expensecategories.index') }}"><i
                                                 data-feather="file-plus"></i> Expense Categories</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('expensesubcategories.index') }}"><i
+                                                data-feather="file-plus"></i> Expense Subcategories</a>
                                     </li>
                                     <li>
                                         <a href="{{ route('expense.index') }}"><i data-feather="file-plus"></i>
@@ -998,25 +1018,7 @@
             });
         });
     </script>
-    <script>
-        $(".search_click").on("keyup change", function() {
-            var keyword = $(this).val();
-            $.ajax({
-                type: "GET",
-                data: {
-                    keyword: keyword
-                },
-                url: "{{ route('admin.livesearch') }}",
-                success: function(products) {
-                    if (products) {
-                        $(".search_result").html(products);
-                    } else {
-                        $(".search_result").empty();
-                    }
-                },
-            });
-        });
-    </script>
+
     @yield('script')
 </body>
 
