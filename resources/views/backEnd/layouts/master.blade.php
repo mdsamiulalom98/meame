@@ -924,7 +924,7 @@
     <!-- App js -->
     <script src="{{ asset('public/backEnd/') }}/assets/js/app.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/toastr.min.js"></script>
-    {!! Toastr::message() !!}
+    {!! \Brian2694\Toastr\Facades\Toastr::message() !!}
     <script src="{{ asset('public/backEnd/') }}/assets/js/sweetalert.min.js"></script>
     <script type="text/javascript">
         $(".delete-confirm").click(function(event) {

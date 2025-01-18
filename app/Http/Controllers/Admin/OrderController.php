@@ -1,8 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-use App\Models\Warehouse;
-use App\Models\WarehouseStock;
 use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Client;
 use App\Http\Controllers\Controller;
@@ -18,6 +16,10 @@ use App\Models\ShippingCharge;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Subcategory;
+use App\Models\Childcategory;
+use App\Models\Warehouse;
+use App\Models\WarehouseStock;
 use App\Models\User;
 use App\Models\Courierapi;
 use App\Models\Expense;
@@ -931,6 +933,12 @@ class OrderController extends Controller
         if ($request->category_id) {
             $products = $products->where('category_id', $request->category_id);
         }
+        if ($request->subcategory_id) {
+            $products = $products->where('subcategory_id', $request->subcategory_id);
+        }
+        if ($request->childcategory_id) {
+            $products = $products->where('childcategory_id', $request->childcategory_id);
+        }
         if ($request->start_date && $request->end_date) {
             $products = $products->whereBetween('created_at', [$request->start_date, $request->end_date]);
         }
@@ -939,7 +947,15 @@ class OrderController extends Controller
         $total_price = $products->sum(\DB::raw('new_price * stock'));
         $products = $products->paginate(100);
         $categories = Category::where('status', 1)->get();
-        return view('backEnd.reports.stock', compact('products', 'categories', 'total_purchase', 'total_stock', 'total_price'));
+        $subcategories = [];
+        if($request->category_id) {
+            $subcategories = Subcategory::where('category_id', $request->category_id)->get();
+        }
+        $childcategories = [];
+        if($request->subcategory_id) {
+            $childcategories = Childcategory::where('subcategory_id', $request->subcategory_id)->get();
+        }
+        return view('backEnd.reports.stock', compact('products', 'categories', 'total_purchase', 'total_stock', 'total_price', 'subcategories', 'childcategories'));
     }
     public function expense_report(Request $request)
     {
@@ -947,15 +963,23 @@ class OrderController extends Controller
         if ($request->keyword) {
             $data = $data->where('name', 'LIKE', '%' . $request->keyword . "%");
         }
+        if ($request->warehouse_id) {
+            $data = $data->where('warehouse_id', $request->warehouse_id);
+        }
         if ($request->category_id) {
             $data = $data->where('expense_cat_id', $request->category_id);
+        }
+        if ($request->subcategory_id) {
+            $data = $data->where('subcategory_id', $request->subcategory_id);
         }
         if ($request->start_date && $request->end_date) {
             $data = $data->whereBetween('created_at', [$request->start_date, $request->end_date]);
         }
         $data = $data->paginate(100);
         $categories = ExpenseCategories::where('status', 1)->get();
-        return view('backEnd.reports.expense', compact('data', 'categories'));
+
+        $warehouses = Warehouse::where('status', 1)->get();
+        return view('backEnd.reports.expense', compact('data', 'categories', 'warehouses'));
     }
     public function asset_report(Request $request)
     {
