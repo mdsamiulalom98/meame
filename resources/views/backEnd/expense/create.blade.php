@@ -110,7 +110,7 @@
                             <div class="col-sm-6">
                                 <div class="form-group mb-3">
                                     <label for="amount" class="form-label">Amount</label>
-                                    <input type="text" class="form-control @error('amount') is-invalid @enderror"
+                                    <input type="number" class="form-control @error('amount') is-invalid @enderror"
                                         name="amount" value="{{ old('amount') }}" id="amount">
                                     @error('amount')
                                         <span class="invalid-feedback" role="alert">
@@ -135,7 +135,7 @@
                             <!-- col-end -->
                             <div class="col-sm-6 mb-3">
                                 <div class="form-group">
-                                    <label for="image" class="form-label">Image *</label>
+                                    <label for="image" class="form-label">Image </label>
                                     <input type="file" class="form-control @error('image') is-invalid @enderror"
                                         name="image" value="{{ old('image') }}" id="image">
 
@@ -150,7 +150,7 @@
 
                             <div class="col-sm-12">
                                 <div class="form-group mb-3">
-                                    <label for="note" class="form-label">Note *</label>
+                                    <label for="note" class="form-label">Note </label>
                                     <textarea type="text" class="form-control @error('note') is-invalid @enderror" name="note" rows="4"
                                         value="{{ old('note') }}" id="note"></textarea>
                                     @error('note')

@@ -180,7 +180,7 @@
                                 <table class="table table-bordered">
                                     <tbody id="cart_details">
                                         @php
-                                            $subtotal = Cart::instance('pos_shopping')->subtotal();
+                                            $subtotal = \Gloudemans\Shoppingcart\Facades\Cart::instance('pos_shopping')->subtotal();
                                             $subtotal = str_replace(',', '', $subtotal);
                                             $subtotal = str_replace('.00', '', $subtotal);
                                             $shipping = Session::get('pos_shipping');

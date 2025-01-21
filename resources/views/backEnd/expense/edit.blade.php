@@ -37,14 +37,12 @@
                                         class="form-control form-select select2-multiple @error('expense_cat_id') is-invalid @enderror"
                                         id="expense_cat_id" name="expense_cat_id" value="{{ old('expense_cat_id') }}"
                                         data-placeholder="Choose ..."required>
-                                        <optgroup>
-                                            <option value="">Choose..</option>
-                                            @foreach ($categories as $key => $value)
-                                                <option value="{{ $value->id }}"
-                                                    @if ($value->id == $edit_data->expense_cat_id) selected @endif>{{ $value->name }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
+                                        <option value="">Choose..</option>
+                                        @foreach ($categories as $key => $value)
+                                            <option value="{{ $value->id }}"
+                                                @if ($value->id == $edit_data->expense_cat_id) selected @endif>{{ $value->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     @error('expense_cat_id')
                                         <span class="invalid-feedback" role="alert">
@@ -61,14 +59,14 @@
                                         class="form-control select2-multiple @error('subcategory_id') is-invalid @enderror"
                                         id="subcategory_id" name="subcategory_id" value="{{ old('subcategory_id') }}"
                                         data-toggle="select2" data-placeholder="Choose ..."required>
-                                        <optgroup>
-                                            <option value="">Choose..</option>
-                                            @foreach ($subcategories as $key => $value)
-                                                <option value="{{ $value->id }}"
-                                                    @if ($value->id == $edit_data->subcategory_id) selected @endif>{{ $value->name }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
+
+                                        <option value="">Choose..</option>
+                                        @foreach ($subcategories as $key => $value)
+                                            <option value="{{ $value->id }}"
+                                                @if ($value->id == $edit_data->subcategory_id) selected @endif>{{ $value->name }}
+                                            </option>
+                                        @endforeach
+
                                     </select>
                                     @error('subcategory_id')
                                         <span class="invalid-feedback" role="alert">
@@ -85,14 +83,12 @@
                                         class="form-control form-select select2-multiple @error('warehouse_id') is-invalid @enderror"
                                         id="warehouse_id" name="warehouse_id" value="{{ old('warehouse_id') }}"
                                         data-placeholder="Choose ..."required>
-                                        <optgroup>
-                                            <option value="">Choose..</option>
-                                            @foreach ($warehouses as $key => $value)
-                                                <option value="{{ $value->id }}"
-                                                    @if ($value->id == $edit_data->warehouse_id) selected @endif>{{ $value->name }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
+                                        <option value="">Choose..</option>
+                                        @foreach ($warehouses as $key => $value)
+                                            <option value="{{ $value->id }}"
+                                                @if ($value->id == $edit_data->warehouse_id) selected @endif>{{ $value->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     @error('warehouse_id')
                                         <span class="invalid-feedback" role="alert">
@@ -102,7 +98,6 @@
                                 </div>
                             </div>
                             <!-- col end -->
-
                             <div class="col-sm-6">
                                 <div class="form-group mb-3">
                                     <label for="name" class="form-label">Name *</label>
@@ -120,7 +115,7 @@
                             <div class="col-sm-6">
                                 <div class="form-group mb-3">
                                     <label for="amount" class="form-label">Amount</label>
-                                    <input type="text" class="form-control @error('amount') is-invalid @enderror"
+                                    <input type="number" class="form-control @error('amount') is-invalid @enderror"
                                         name="amount" value="{{ $edit_data->amount }}" id="amount">
                                     @error('amount')
                                         <span class="invalid-feedback" role="alert">
@@ -142,9 +137,10 @@
                                     @enderror
                                 </div>
                             </div>
+
                             <div class="col-sm-6 mb-3">
                                 <div class="form-group">
-                                    <label for="image" class="form-label">Image *</label>
+                                    <label for="image" class="form-label">Image </label>
                                     <input type="file" class="form-control @error('image') is-invalid @enderror"
                                         name="image" value="{{ $edit_data->image }}" id="image">
                                     <img src="{{ asset($edit_data->image) }}" alt="" class="backend-image">

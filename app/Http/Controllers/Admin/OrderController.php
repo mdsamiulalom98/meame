@@ -162,24 +162,24 @@ class OrderController extends Controller
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post($pathao_info->url . '/api/v1/orders', [
-                        'store_id' => $request->pathaostore,
-                        'merchant_order_id' => $order->invoice_id,
-                        'sender_name' => 'Test',
-                        'sender_phone' => $order->shipping ? $order->shipping->phone : '',
-                        'recipient_name' => $order->shipping ? $order->shipping->name : '',
-                        'recipient_phone' => $order->shipping ? $order->shipping->phone : '',
-                        'recipient_address' => $order->shipping ? $order->shipping->address : '',
-                        'recipient_city' => $request->pathaocity,
-                        'recipient_zone' => $request->pathaozone,
-                        'recipient_area' => $request->pathaoarea,
-                        'delivery_type' => 48,
-                        'item_type' => 2,
-                        'special_instruction' => 'Special note- product must be check after delivery',
-                        'item_quantity' => $order_count,
-                        'item_weight' => 0.5,
-                        'amount_to_collect' => round($order->amount),
-                        'item_description' => 'Special note- product must be check after delivery',
-                    ]);
+                'store_id' => $request->pathaostore,
+                'merchant_order_id' => $order->invoice_id,
+                'sender_name' => 'Test',
+                'sender_phone' => $order->shipping ? $order->shipping->phone : '',
+                'recipient_name' => $order->shipping ? $order->shipping->name : '',
+                'recipient_phone' => $order->shipping ? $order->shipping->phone : '',
+                'recipient_address' => $order->shipping ? $order->shipping->address : '',
+                'recipient_city' => $request->pathaocity,
+                'recipient_zone' => $request->pathaozone,
+                'recipient_area' => $request->pathaoarea,
+                'delivery_type' => 48,
+                'item_type' => 2,
+                'special_instruction' => 'Special note- product must be check after delivery',
+                'item_quantity' => $order_count,
+                'item_weight' => 0.5,
+                'amount_to_collect' => round($order->amount),
+                'item_description' => 'Special note- product must be check after delivery',
+            ]);
         }
         if ($response->status() == '200') {
             $order->order_status = 4;
@@ -486,7 +486,8 @@ class OrderController extends Controller
         $cartinfo = Cart::instance('pos_shopping')->content();
         $shippingcharge = ShippingCharge::where('status', 1)->get();
         $ordercategory = OrderCategory::where('status', 1)->get();
-        return view('backEnd.order.create', compact('categories', 'products', 'cartinfo', 'shippingcharge', 'ordercategory'));
+        $customers = Customer::where('status', 'active')->get();
+        return view('backEnd.order.create', compact('categories', 'products', 'cartinfo', 'shippingcharge', 'ordercategory', 'customers'));
     }
 
     public function order_store(Request $request)
@@ -1026,10 +1027,8 @@ class OrderController extends Controller
     public function order_paid(Request $request)
     {
         $amount = $request->amount;
-        $customer = Customer::where('phone', $request->phone)->first();
-        $due = $customer->due ?? 0;
+
         Session::put('cpaid', $amount);
-        Session::put('old_due', $due);
         return response()->json($amount);
     }
     public function additional_shipping(Request $request)
@@ -1037,5 +1036,11 @@ class OrderController extends Controller
         $amount = $request->amount;
         Session::put('additional_shipping', $amount);
         return response()->json($amount);
+    }
+    public function customer_select(Request $request) {
+        $customer = Customer::where('id', $request->id)->first();
+        $due = $customer->due ?? 0;
+        Session::put('old_due', $due);
+        return response()->json($customer);
     }
 }

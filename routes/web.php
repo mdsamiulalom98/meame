@@ -570,6 +570,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::get('expense-report', [OrderController::class, 'expense_report'])->name('admin.expense_report');
     Route::get('asset-report', [OrderController::class, 'asset_report'])->name('admin.asset_report');
     Route::get('loss-profit', [OrderController::class, 'loss_profit'])->name('admin.loss_profit');
+    Route::get('customer-select', [OrderController::class, 'customer_select'])->name('admin.customer.select');
 
     // Order route
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');

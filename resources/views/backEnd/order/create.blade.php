@@ -14,7 +14,7 @@
 @endsection
 @section('content')
     @php
-        $subtotal = Cart::instance('pos_shopping')->subtotal();
+        $subtotal = \Gloudemans\Shoppingcart\Facades\Cart::instance('pos_shopping')->subtotal();
         $subtotal = str_replace(',', '', $subtotal);
         $subtotal = str_replace('.00', '', $subtotal);
         $shipping = Session::get('pos_shipping');
@@ -149,7 +149,6 @@
                                         id="guest_customer">
                                 </div>
                                 <div class="row new_customer">
-
                                     <div class="col-sm-12">
                                         <div class="form-group mb-2">
                                             <select type="category_id" id="category_id"
@@ -162,6 +161,24 @@
 
                                             </select>
                                             @error('category_id')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group mb-2">
+                                            <select  id="customer_id"
+                                                class="form-control select2 @error('customer_id') is-invalid @enderror"
+                                                name="customer_id" required>
+                                                <option value="">Select Customer ...</option>
+                                                @foreach ($customers as $key => $value)
+                                                    <option value="{{ $value->id }}">{{ $value->name }} - {{ $value->phone }}</option>
+                                                @endforeach
+
+                                            </select>
+                                            @error('customer_id')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
@@ -381,6 +398,24 @@
                 url: "{{ route('admin.order.additional_shipping') }}",
                 dataType: "json",
                 success: function(cartinfo) {
+                    return cart_content() + cart_details();
+                }
+            });
+        });
+        $("#customer_id").change(function() {
+            var id = $(this).val();
+            $.ajax({
+                cache: false,
+                type: "GET",
+                data: {
+                    'id': id,
+                },
+                url: "{{ route('admin.customer.select') }}",
+                dataType: "json",
+                success: function(customer) {
+                    $('#name').val(customer.name);
+                    $('#phone').val(customer.phone);
+                    $('#address').val(customer.address);
                     return cart_content() + cart_details();
                 }
             });
