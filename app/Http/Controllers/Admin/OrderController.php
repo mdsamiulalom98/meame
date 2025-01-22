@@ -66,7 +66,8 @@ class OrderController extends Controller
 
     public function office_orders() {
         $show_data = Order::where('order_type', 0)->paginate(100);
-        $order_status = OrderStatus::where('slug', 'delivered')->withCount('orders')->first();
+        // return $show_data;
+        $order_status = OrderStatus::where(['slug' => 'delivered'])->withCount('orders')->first();
         $users = User::get();
         $steadfast = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
         $pathao_info = Courierapi::where(['status' => 1, 'type' => 'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
@@ -83,7 +84,7 @@ class OrderController extends Controller
             $pathaocities = [];
             $pathaostore = [];
         }
-        return view('backEnd.order.index', compact('show_data', 'order_status', 'users', 'steadfast', 'pathaostore', 'pathaocities'));
+        return view('backEnd.order.officeorders', compact('show_data', 'order_status', 'users', 'steadfast', 'pathaostore', 'pathaocities'));
     }
     public function index($slug, Request $request)
     {

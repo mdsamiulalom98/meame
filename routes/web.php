@@ -360,6 +360,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::get('payment/edit/{id}', [PaymentController::class, 'edit'])->name('admin.payment.edit');
     Route::post('payment/update', [PaymentController::class, 'update'])->name('admin.payment.update');
     Route::post('payment/destroy', [PaymentController::class, 'destroy'])->name('admin.payment.destroy');
+    Route::get('user-select', [PaymentController::class, 'user_select'])->name('admin.user.select');
 
 
     // collection
