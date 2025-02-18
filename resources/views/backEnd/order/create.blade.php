@@ -11,6 +11,7 @@
     <link href="{{ asset('public/backEnd') }}/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ asset('public/backEnd') }}/assets/libs/summernote/summernote-lite.min.css" rel="stylesheet"
         type="text/css" />
+    <link href="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.css" rel="stylesheet" type="text/css" />
 @endsection
 @section('content')
     @php
@@ -49,7 +50,8 @@
                             <div class="col-sm-3">
                                 <div class="form-group mb-3">
                                     <label for="category_id" class="form-label">Categories *</label>
-                                    <select class="form-control select2 @error('category_id') is-invalid @enderror"
+                                    <select
+                                        class="form-control form-select select2 @error('category_id') is-invalid @enderror"
                                         name="category_id" value="{{ old('category_id') }}" id="category_id" required>
                                         <option value="">Select..</option>
                                         @foreach ($categories as $category)
@@ -152,7 +154,7 @@
                                     <div class="col-sm-12">
                                         <div class="form-group mb-2">
                                             <select type="category_id" id="category_id"
-                                                class="form-control @error('category_id') is-invalid @enderror"
+                                                class="form-control form-select @error('category_id') is-invalid @enderror"
                                                 name="category_id" required>
                                                 <option value="">Select Category....</option>
                                                 @foreach ($ordercategory as $key => $value)
@@ -169,12 +171,31 @@
                                     </div>
                                     <div class="col-sm-12">
                                         <div class="form-group mb-2">
-                                            <select  id="customer_id"
+                                            <select type="warehouse_id" id="warehouse_id"
+                                                class="form-control form-select @error('warehouse_id') is-invalid @enderror"
+                                                name="warehouse_id" required>
+                                                <option value="">Select Warehouse....</option>
+                                                @foreach ($warehouses as $key => $value)
+                                                    <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                                @endforeach
+
+                                            </select>
+                                            @error('warehouse_id')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group mb-2">
+                                            <select id="customer_id"
                                                 class="form-control select2 @error('customer_id') is-invalid @enderror"
                                                 name="customer_id" required>
                                                 <option value="">Select Customer ...</option>
                                                 @foreach ($customers as $key => $value)
-                                                    <option value="{{ $value->id }}">{{ $value->name }} - {{ $value->phone }}</option>
+                                                    <option value="{{ $value->id }}">{{ $value->name }} -
+                                                        {{ $value->phone }}</option>
                                                 @endforeach
 
                                             </select>
@@ -250,7 +271,8 @@
                                             <input type="number" id="additional_shipping"
                                                 class="form-control @error('additional_shipping') is-invalid @enderror"
                                                 placeholder="Additional Shipping" name="additional_shipping"
-                                                value="{{ $additional_shipping > 0 ? $additional_shipping : '' }}" required>
+                                                value="{{ $additional_shipping > 0 ? $additional_shipping : '' }}"
+                                                required>
                                             @error('additional_shipping')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -260,11 +282,12 @@
                                     </div>
                                     <!-- col-end -->
                                     <div class="col-sm-12">
-                                        <label for="paid" class="form-label">Cash *</label>
+                                        <label for="paid" class="form-label">Paid *</label>
                                         <div class="form-group mb-2">
                                             <input type="number" id="paid"
                                                 class="form-control @error('paid') is-invalid @enderror"
-                                                placeholder="Cash" name="paid" value="{{ $paid > 0 ? $paid : '' }}" required>
+                                                placeholder="Cash" name="paid" value="{{ $paid > 0 ? $paid : '' }}"
+                                                required>
                                             @error('paid')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -311,8 +334,22 @@
                                 <div class="col-sm-12">
                                     <div class="form-group mb-3">
                                         <label for="admin_note" class="form-label">Description*</label>
-                                        <textarea type="text" class=" form-control @error('admin_note') is-invalid @enderror" name="admin_note" rows="6" value="{{ old('admin_note') }}"  id="admin_note" required=""></textarea>
+                                        <textarea type="text" class=" form-control @error('admin_note') is-invalid @enderror" name="admin_note"
+                                            rows="6" value="{{ old('admin_note') }}" id="admin_note" required=""></textarea>
                                         @error('admin_note')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <!-- col-end -->
+                                <div class="col-sm-12">
+                                    <div class="form-group mb-3">
+                                        <label for="order_date" class="form-label">Date*</label>
+                                        <input name="order_date" value="{{ old('order_date') }}" required
+                                            class="form-control flatpickr @error('order_date') is-invalid @enderror">
+                                        @error('order_date')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
@@ -338,12 +375,19 @@
     <script src="{{ asset('public/backEnd/') }}/assets/libs/parsleyjs/parsley.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-validation.init.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/libs/select2/js/select2.min.js"></script>
+    <script src="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-advanced.init.js"></script>
     <!-- Plugins js -->
     <script src="{{ asset('public/backEnd/') }}/assets/libs//summernote/summernote-lite.min.js"></script>
     <script>
         $(".summernote").summernote({
             placeholder: "Enter Your Text Here",
+        });
+        $(".flatpickr").flatpickr({
+            enableTime: true,
+            dateFormat: "Y-m-d H:i:S",
+            time_24hr: true,
+            defaultDate: new Date(),
         });
     </script>
 

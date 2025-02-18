@@ -49,9 +49,9 @@
                                             <span>{{ $value->name }}</span>
                                         </td>
                                         <tD>{{ $value->phone }}</tD>
-<td>
-    {{ $value->address }}
-</td>
+                                        <td>
+                                            {{ $value->address }}
+                                        </td>
                                         <td>
                                             @if ($value->status == 1)
                                                 <span class="badge bg-soft-success text-success">Active</span>

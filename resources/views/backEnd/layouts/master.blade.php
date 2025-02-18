@@ -444,7 +444,7 @@
                                         <a href="{{ route('asset.categories.index') }}"><i data-feather="file-plus"></i> Asset Categories</a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('asset.index') }}"><i data-feather="file-plus"></i> Asset Create</a>
+                                        <a href="{{ route('asset.create') }}"><i data-feather="file-plus"></i> Asset Create</a>
                                     </li>
                                     <li>
                                         <a href="{{ route('asset.index') }}"><i data-feather="file-plus"></i> Asset Manage</a>
@@ -683,6 +683,10 @@
                                     <li>
                                         <a href="{{ route('admin.stock_report') }}"><i data-feather="file-plus"></i>
                                             Stock Report</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('admin.warehouse_report') }}"><i data-feather="file-plus"></i>
+                                            Warehouse Report</a>
                                     </li>
                                     <li>
                                         <a href="{{ route('admin.return_report') }}"><i data-feather="file-plus"></i>

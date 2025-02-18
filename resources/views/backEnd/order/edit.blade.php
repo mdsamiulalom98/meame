@@ -11,8 +11,19 @@
     <link href="{{ asset('public/backEnd') }}/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ asset('public/backEnd') }}/assets/libs/summernote/summernote-lite.min.css" rel="stylesheet"
         type="text/css" />
+    <link href="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.css" rel="stylesheet" type="text/css" />
 @endsection
 @section('content')
+    @php
+        $subtotal = \Gloudemans\Shoppingcart\Facades\Cart::instance('pos_shopping')->subtotal();
+        $subtotal = str_replace(',', '', $subtotal);
+        $subtotal = str_replace('.00', '', $subtotal);
+        $shipping = Session::get('pos_shipping');
+        $old_due = Session::get('old_due') ?? 0;
+        $paid = Session::get('cpaid') ?? 0;
+        $additional_shipping = Session::get('additional_shipping') ?? 0;
+        $total_discount = Session::get('pos_discount') + Session::get('product_discount');
+    @endphp
     <div class="container-fluid">
         <!-- start page title -->
         <div class="row">
@@ -34,20 +45,76 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="col-sm-12">
-                            <div class="form-group mb-3">
-                                <label for="product_id" class="form-label">Products *</label>
-                                <div class="pos_search">
-                                    <input type="text" placeholder="Search Product or Scan Barcode ..." value=""
-                                        class="search_click" name="keyword" autofocus />
-                                    <button><i data-feather="search"></i></button>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <div class="form-group mb-3">
+                                    <label for="category_id" class="form-label">Categories *</label>
+                                    <select
+                                        class="form-control form-select select2 @error('category_id') is-invalid @enderror"
+                                        name="category_id" value="{{ old('category_id') }}" id="category_id" required>
+                                        <option value="">Select..</option>
+                                        @foreach ($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('category_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
-                                <div class="search_result"></div>
-                                @error('product_id')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            </div>
+                            <!-- col end -->
+                            <div class="col-sm-3">
+                                <div class="form-group mb-3">
+                                    <label for="subcategory_id" class="form-label">SubCategories (Optional)</label>
+                                    <select class="form-control select2 @error('subcategory_id') is-invalid @enderror"
+                                        id="subcategory_id" name="subcategory_id" data-placeholder="Choose ...">
+                                        <optgroup>
+                                            <option value="">Select..</option>
+                                        </optgroup>
+                                    </select>
+                                    @error('subcategory_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <!-- col end -->
+                            <div class="col-sm-3">
+                                <div class="form-group mb-3">
+                                    <label for="childcategory_id" class="form-label">Child Categories (Optional)</label>
+                                    <select class="form-control select2 @error('childcategory_id') is-invalid @enderror"
+                                        id="childcategory_id" name="childcategory_id" data-placeholder="Choose ...">
+                                        <optgroup>
+                                            <option value="">Select..</option>
+                                        </optgroup>
+                                    </select>
+                                    @error('childcategory_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <!-- col end -->
+                            <div class="col-sm-3 ">
+                                <div class="form-group mb-3">
+                                    <label for="product_id" class="form-label">Products *</label>
+                                    <select class="form-control select2 @error('product_id') is-invalid @enderror"
+                                        id="product_id" name="product_id" data-placeholder="Choose ...">
+                                        <optgroup>
+                                            <option value="">Select..</option>
+                                        </optgroup>
+                                    </select>
+
+                                    @error('product_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
                         <!-- col end -->
@@ -59,7 +126,6 @@
                                 <table class="table table-bordered table-responsive-sm">
                                     <thead>
                                         <tr>
-                                        <tr>
                                             <th style="width:10%">Image</th>
                                             <th style="width:25%">Name</th>
                                             <th style="width:15%">Quantity</th>
@@ -67,7 +133,6 @@
                                             <th style="width:15%">Discount</th>
                                             <th style="width:15%">Sub Total</th>
                                             <th style="width:15%">Action</th>
-                                        </tr>
                                         </tr>
                                     </thead>
                                     <tbody id="cartTable">
@@ -91,7 +156,45 @@
                                                 @endforeach
 
                                             </select>
+
                                             @error('category_id')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group mb-2">
+                                            <select type="warehouse_id" id="warehouse_id"
+                                                class="form-control form-select @error('warehouse_id') is-invalid @enderror"
+                                                name="warehouse_id" required>
+                                                <option value="">Select Warehouse....</option>
+                                                @foreach ($warehouses as $key => $value)
+                                                    <option {{ $value->id == $order->warehouse_id ? 'selected' : '' }} value="{{ $value->id }}">{{ $value->name }}</option>
+                                                @endforeach
+
+                                            </select>
+                                            @error('warehouse_id')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <div class="form-group mb-2">
+                                            <select id="customer_id"
+                                                class="form-control select2 @error('customer_id') is-invalid @enderror"
+                                                name="customer_id" required>
+                                                <option value="">Select Customer ...</option>
+                                                @foreach ($customers as $key => $value)
+                                                    <option  {{ $value->id == $order->customer_id ? 'selected' : '' }}  value="{{ $value->id }}">{{ $value->name }} -
+                                                        {{ $value->phone }}</option>
+                                                @endforeach
+
+                                            </select>
+                                            @error('customer_id')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
@@ -159,8 +262,23 @@
                                         </div>
                                     </div>
                                     <!-- col-end -->
-
                                     <div class="col-sm-12">
+                                        <label for="additional_shipping" class="form-label">Additional Shipping *</label>
+                                        <div class="form-group mb-2">
+                                            <input type="number" id="additional_shipping"
+                                                class="form-control @error('additional_shipping') is-invalid @enderror"
+                                                placeholder="Additional Shipping" name="additional_shipping"
+                                                value="{{ $order->additional_shipping ?? 0 }}" required>
+                                            @error('additional_shipping')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <!-- col-end -->
+                                    <div class="col-sm-12">
+                                        <label for="paid" class="form-label">Paid *</label>
                                         <div class="form-group mb-2">
                                             <input type="number" id="paid"
                                                 class="form-control @error('paid') is-invalid @enderror"
@@ -173,23 +291,16 @@
                                         </div>
                                     </div>
                                     <!-- col-end -->
+
+
+                                    <!-- col-end -->
                                 </div>
                             </div>
                             <!-- cart total -->
                             <div class="col-sm-6">
                                 <table class="table table-bordered">
                                     <tbody id="cart_details">
-                                        @php
-                                            $subtotal = \Gloudemans\Shoppingcart\Facades\Cart::instance('pos_shopping')->subtotal();
-                                            $subtotal = str_replace(',', '', $subtotal);
-                                            $subtotal = str_replace('.00', '', $subtotal);
-                                            $shipping = Session::get('pos_shipping');
-                                            $old_due = Session::get('old_due') ?? 0;
-                                            $paid = Session::get('cpaid') ?? 0;
-                                            $additional_shipping = Session::get('additional_shipping') ?? 0;
-                                            $total_discount =
-                                                Session::get('pos_discount') + Session::get('product_discount');
-                                        @endphp
+
                                         <tr>
                                             <td>Sub Total</td>
                                             <td>{{ $subtotal }}</td>
@@ -221,8 +332,21 @@
                                     <div class="form-group mb-3">
                                         <label for="admin_note" class="form-label">Description*</label>
                                         <textarea type="text" class=" form-control @error('admin_note') is-invalid @enderror" name="admin_note"
-                                            rows="6" value="{{ $order->admin_note ?? old('admin_note') }}" id="admin_note" required=""></textarea>
+                                            rows="6" value="{{ $order->admin_note ?? old('admin_note') }}" id="admin_note" required="">{{ $order->admin_note }}</textarea>
                                         @error('admin_note')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <!-- col-end -->
+                                <div class="col-sm-12">
+                                    <div class="form-group mb-3">
+                                        <label for="order_date" class="form-label">Date*</label>
+                                        <input name="order_date" value="{{ $order->created_at }}" required
+                                            class="form-control flatpickr @error('order_date') is-invalid @enderror">
+                                        @error('order_date')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
@@ -248,12 +372,19 @@
     <script src="{{ asset('public/backEnd/') }}/assets/libs/parsleyjs/parsley.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-validation.init.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/libs/select2/js/select2.min.js"></script>
+    <script src="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-advanced.init.js"></script>
     <!-- Plugins js -->
     <script src="{{ asset('public/backEnd/') }}/assets/libs//summernote/summernote-lite.min.js"></script>
     <script>
         $(".summernote").summernote({
             placeholder: "Enter Your Text Here",
+        });
+        $(".flatpickr").flatpickr({
+            enableTime: true,
+            dateFormat: "Y-m-d H:i:S",
+            time_24hr: true,
+            defaultDate: new Date(),
         });
     </script>
 

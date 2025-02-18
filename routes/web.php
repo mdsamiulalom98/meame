@@ -565,6 +565,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::get('pathao-city', [OrderController::class, 'pathaocity'])->name('pathaocity');
     Route::get('pathao-zone', [OrderController::class, 'pathaozone'])->name('pathaozone');
     Route::get('stock-report', [OrderController::class, 'stock_report'])->name('admin.stock_report');
+    Route::get('warehouse-report', [OrderController::class, 'warehouse_report'])->name('admin.warehouse_report');
     Route::get('order-report', [OrderController::class, 'order_report'])->name('admin.order_report');
     Route::get('return-report', [OrderController::class, 'return_report'])->name('admin.return_report');
     Route::get('replace-report', [OrderController::class, 'replace_report'])->name('admin.replace_report');

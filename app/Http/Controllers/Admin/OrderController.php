@@ -203,7 +203,7 @@ class OrderController extends Controller
     {
         $data = Order::where(['invoice_id' => $invoice_id])->select('id', 'invoice_id', 'order_status')->with('orderdetails')->first();
         $shippingcharge = ShippingCharge::where('status', 1)->get();
-        $warehouses = Warehouse::get();
+        $warehouses = Warehouse::where('status', 1)->get();
         return view('backEnd.order.process', compact('data', 'shippingcharge', 'warehouses'));
     }
 
@@ -488,7 +488,8 @@ class OrderController extends Controller
         $shippingcharge = ShippingCharge::where('status', 1)->get();
         $ordercategory = OrderCategory::where('status', 1)->get();
         $customers = Customer::where('status', 'active')->get();
-        return view('backEnd.order.create', compact('categories', 'products', 'cartinfo', 'shippingcharge', 'ordercategory', 'customers'));
+        $warehouses = Warehouse::where('status', 1)->get();
+        return view('backEnd.order.create', compact('categories', 'products', 'cartinfo', 'shippingcharge', 'ordercategory', 'customers', 'warehouses'));
     }
 
     public function order_store(Request $request)
@@ -565,7 +566,9 @@ class OrderController extends Controller
         $order->order_status = 5;
         $order->order_type = 0;
         $order->category_id = $request->category_id;
+        $order->warehouse_id = $request->warehouse_id;
         $order->admin_note = $request->admin_note;
+        $order->created_at = $request->order_date;
         $order->save();
 
         // shipping data save
@@ -745,7 +748,10 @@ class OrderController extends Controller
             ]);
         }
         $cartinfo = Cart::instance('pos_shopping')->content();
-        return view('backEnd.order.edit', compact('products', 'cartinfo', 'shippingcharge', 'shippinginfo', 'order', 'ordercategory'));
+        $customers = Customer::where('status', 'active')->get();
+        $warehouses = Warehouse::where('status', 1)->get();
+        $categories = Category::where('status', 1)->get();
+        return view('backEnd.order.edit', compact('products', 'cartinfo', 'shippingcharge', 'shippinginfo', 'order', 'ordercategory', 'customers', 'warehouses', 'categories'));
     }
 
     public function order_update(Request $request)
@@ -958,6 +964,30 @@ class OrderController extends Controller
             $childcategories = Childcategory::where('subcategory_id', $request->subcategory_id)->get();
         }
         return view('backEnd.reports.stock', compact('products', 'categories', 'total_purchase', 'total_stock', 'total_price', 'subcategories', 'childcategories'));
+    }
+    public function warehouse_report(Request $request)
+    {
+        $stocks = WarehouseStock::query();
+
+        if ($request->warehouse_id) {
+            $stocks = $stocks->where('warehouse_id', $request->warehouse_id);
+        }
+
+        if ($request->product_id) {
+            $stocks = $stocks->where('product_id', $request->product_id);
+        }
+
+        if ($request->start_date && $request->end_date) {
+            $stocks = $stocks->whereBetween('created_at', [$request->start_date, $request->end_date]);
+        }
+        // $total_purchase = $stocks->sum(\DB::raw('purchase_price * stock'));
+        // $total_stock = $stocks->sum('stock');
+        // $total_price = $stocks->sum(\DB::raw('new_price * stock'));
+        $stocks = $stocks->paginate(100);
+        $products = Product::where('status', 1)->get();
+        $warehouses = Warehouse::where('status', 1)->get();
+
+        return view('backEnd.reports.warehouse', compact('stocks','products', 'warehouses'));
     }
     public function expense_report(Request $request)
     {
