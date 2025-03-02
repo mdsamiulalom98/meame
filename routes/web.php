@@ -10,7 +10,8 @@ use App\Http\Controllers\Frontend\ShurjopayControllers;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderCategoryController;
-use App\Http\Controllers\Admin\AssetCategoryController;
+use App\Http\Controllers\Admin\AssetcategoryController;
+use App\Http\Controllers\Admin\AssetsubcategoryController;
 use App\Http\Controllers\Admin\AssetController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PermissionController;
@@ -64,11 +65,8 @@ Route::get('/migrate', function () {
 Route::group(['namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refer']], function () {
     Route::get('/', [FrontendController::class, 'index'])->name('home');
     Route::get('category/{category}', [FrontendController::class, 'category'])->name('category');
-
     Route::get('subcategory/{subcategory}', [FrontendController::class, 'subcategory'])->name('subcategory');
-
     Route::get('products/{slug}', [FrontendController::class, 'products'])->name('products');
-
     Route::get('hot-deals', [FrontendController::class, 'hotdeals'])->name('hotdeals');
     Route::get('livesearch', [FrontendController::class, 'livesearch'])->name('livesearch');
     Route::get('search', [FrontendController::class, 'search'])->name('search');
@@ -85,20 +83,16 @@ Route::group(['namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refe
 
     // cart route
     Route::post('cart/store', [ShoppingController::class, 'cart_store'])->name('cart.store');
-
     Route::get('/add-to-cart/{id}/{qty}', [ShoppingController::class, 'addTocartGet']);
-
     Route::get('shop/cart', [ShoppingController::class, 'cart_show'])->name('cart.show');
     Route::get('cart/remove', [ShoppingController::class, 'cart_remove'])->name('cart.remove');
     Route::get('cart/count', [ShoppingController::class, 'cart_count'])->name('cart.count');
     Route::get('mobilecart/count', [ShoppingController::class, 'mobilecart_qty'])->name('mobile.cart.count');
     Route::get('cart/decrement', [ShoppingController::class, 'cart_decrement'])->name('cart.decrement');
     Route::get('cart/increment', [ShoppingController::class, 'cart_increment'])->name('cart.increment');
-
     Route::get('cart/remove-bn', [ShoppingController::class, 'cart_remove_bn'])->name('cart.remove_bn');
     Route::get('cart/decrement-bn', [ShoppingController::class, 'cart_decrement_bn'])->name('cart.decrement_bn');
     Route::get('cart/increment-bn', [ShoppingController::class, 'cart_increment_bn'])->name('cart.increment_bn');
-
 });
 
 Route::group(['prefix' => 'customer', 'namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refer']], function () {
@@ -119,17 +113,13 @@ Route::group(['prefix' => 'customer', 'namespace' => 'Frontend', 'middleware' =>
     Route::get('/checkout', [CustomerController::class, 'checkout'])->name('customer.checkout');
     Route::post('/order-save', [CustomerController::class, 'order_save'])->name('customer.ordersave');
     Route::get('/order-success/{id}', [CustomerController::class, 'order_success'])->name('customer.order_success');
-
     Route::get('/order-track', [CustomerController::class, 'order_track'])->name('customer.order_track');
     Route::get('/order-track/result', [CustomerController::class, 'order_track_result'])->name('customer.order_track_result');
-
-
+    Route::post('/complaint-submit', [CustomerController::class, 'complaint_submit'])->name('complaint.submit');
 });
 // customer auth
 Route::group(['prefix' => 'customer', 'namespace' => 'Frontend', 'middleware' => ['customer', 'ipcheck', 'check_refer']], function () {
-
     Route::get('/account', [CustomerController::class, 'account'])->name('customer.account');
-
     Route::get('/orders', [CustomerController::class, 'orders'])->name('customer.orders');
     Route::get('/invoice', [CustomerController::class, 'invoice'])->name('customer.invoice');
     Route::get('/invoice/order-note', [CustomerController::class, 'order_note'])->name('customer.order_note');
@@ -137,17 +127,14 @@ Route::group(['prefix' => 'customer', 'namespace' => 'Frontend', 'middleware' =>
     Route::post('/profile-update', [CustomerController::class, 'profile_update'])->name('customer.profile_update');
     Route::get('/change-password', [CustomerController::class, 'change_pass'])->name('customer.change_pass');
     Route::post('/password-update', [CustomerController::class, 'password_update'])->name('customer.password_update');
-
 });
 
 Route::group(['namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refer']], function () {
-
     Route::get('bkash/checkout-url/pay', [BkashController::class, 'pay'])->name('url-pay');
     Route::any('bkash/checkout-url/create', [BkashController::class, 'create'])->name('url-create');
     Route::get('bkash/checkout-url/callback', [BkashController::class, 'callback'])->name('url-callback');
     Route::get('/payment-success', [ShurjopayControllers::class, 'payment_success'])->name('payment_success');
     Route::get('/payment-cancel', [ShurjopayControllers::class, 'payment_cancel'])->name('payment_cancel');
-
 });
 
 // unathenticate admin route
@@ -161,6 +148,7 @@ Route::get('/ajax-product-subcategory', [ProductController::class, 'getSubcatego
 Route::get('/ajax-product-childcategory', [ProductController::class, 'getChildcategory']);
 // backend routes
 Route::get('/ajax-expense-subcategory', [ExpenseController::class, 'getSubcategory']);
+Route::get('/ajax-asset-subcategory', [AssetController::class, 'getSubcategory']);
 
 // auth route
 Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_refer'], 'prefix' => 'admin'], function () {
@@ -507,15 +495,26 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::post('order-categories/destroy', [OrderCategoryController::class, 'destroy'])->name('order.categories.destroy');
 
     // asset categories
-    Route::get('asset-categories/manage', [AssetCategoryController::class, 'index'])->name('asset.categories.index');
-    Route::get('asset-categories/{id}/show', [AssetCategoryController::class, 'show'])->name('asset.categories.show');
-    Route::get('asset-categories/create', [AssetCategoryController::class, 'create'])->name('asset.categories.create');
-    Route::post('asset-categories/save', [AssetCategoryController::class, 'store'])->name('asset.categories.store');
-    Route::get('asset-categories/{id}/edit', [AssetCategoryController::class, 'edit'])->name('asset.categories.edit');
-    Route::post('asset-categories/update', [AssetCategoryController::class, 'update'])->name('asset.categories.update');
-    Route::post('asset-categories/inactive', [AssetCategoryController::class, 'inactive'])->name('asset.categories.inactive');
-    Route::post('asset-categories/active', [AssetCategoryController::class, 'active'])->name('asset.categories.active');
-    Route::post('asset-categories/destroy', [AssetCategoryController::class, 'destroy'])->name('asset.categories.destroy');
+    Route::get('asset-categories/manage', [AssetcategoryController::class, 'index'])->name('asset.categories.index');
+    Route::get('asset-categories/{id}/show', [AssetcategoryController::class, 'show'])->name('asset.categories.show');
+    Route::get('asset-categories/create', [AssetcategoryController::class, 'create'])->name('asset.categories.create');
+    Route::post('asset-categories/save', [AssetcategoryController::class, 'store'])->name('asset.categories.store');
+    Route::get('asset-categories/{id}/edit', [AssetcategoryController::class, 'edit'])->name('asset.categories.edit');
+    Route::post('asset-categories/update', [AssetcategoryController::class, 'update'])->name('asset.categories.update');
+    Route::post('asset-categories/inactive', [AssetcategoryController::class, 'inactive'])->name('asset.categories.inactive');
+    Route::post('asset-categories/active', [AssetcategoryController::class, 'active'])->name('asset.categories.active');
+    Route::post('asset-categories/destroy', [AssetcategoryController::class, 'destroy'])->name('asset.categories.destroy');
+
+    // asset subcategories
+    Route::get('asset-subcategories/manage', [AssetsubcategoryController::class, 'index'])->name('asset.subcategories.index');
+    Route::get('asset-subcategories/{id}/show', [AssetsubcategoryController::class, 'show'])->name('asset.subcategories.show');
+    Route::get('asset-subcategories/create', [AssetsubcategoryController::class, 'create'])->name('asset.subcategories.create');
+    Route::post('asset-subcategories/save', [AssetsubcategoryController::class, 'store'])->name('asset.subcategories.store');
+    Route::get('asset-subcategories/{id}/edit', [AssetsubcategoryController::class, 'edit'])->name('asset.subcategories.edit');
+    Route::post('asset-subcategories/update', [AssetsubcategoryController::class, 'update'])->name('asset.subcategories.update');
+    Route::post('asset-subcategories/inactive', [AssetsubcategoryController::class, 'inactive'])->name('asset.subcategories.inactive');
+    Route::post('asset-subcategories/active', [AssetsubcategoryController::class, 'active'])->name('asset.subcategories.active');
+    Route::post('asset-subcategories/destroy', [AssetsubcategoryController::class, 'destroy'])->name('asset.subcategories.destroy');
 
     // asset categories
     Route::get('asset/manage', [AssetController::class, 'index'])->name('asset.index');
@@ -609,6 +608,8 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::post('customer/ip-store', [CustomerManageController::class, 'ipblock_store'])->name('customers.ipblock.store');
     Route::post('customer/ip-update', [CustomerManageController::class, 'ipblock_update'])->name('customers.ipblock.update');
     Route::post('customer/ip-destroy', [CustomerManageController::class, 'ipblock_destroy'])->name('customers.ipblock.destroy');
+    Route::get('customer/complaints', [CustomerManageController::class, 'complaints'])->name('customers.complaint');
+    Route::get('customer/complaint/{id}', [CustomerManageController::class, 'complaint_view'])->name('customers.complaint.view');
 
 
     Route::get('purchase-reports', [ReportsController::class, 'purchase_reports'])->name('purchase.reports');

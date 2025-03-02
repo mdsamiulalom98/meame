@@ -29,14 +29,13 @@
                             enctype="multipart/form-data">
                             @csrf
 
-                            <div class="col-sm-12">
+                            <div class="col-sm-6">
                                 <div class="form-group mb-3">
                                     <label for="category_id" class="form-label">Category *</label>
                                     <select class="form-control select2-multiple @error('category_id') is-invalid @enderror"
                                         id="category_id" name="category_id" value="{{ old('category_id') }}"
                                         data-toggle="select2" data-placeholder="Choose ..."required>
                                         <optgroup>
-
                                             <option value="">Choose..</option>
                                             @foreach ($assetcategory as $category)
                                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -44,6 +43,25 @@
                                         </optgroup>
                                     </select>
                                     @error('category_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <!-- col end -->
+                            <div class="col-sm-6">
+                                <div class="form-group mb-3">
+                                    <label for="subcategory_id" class="form-label">Subcategory *</label>
+                                    <select
+                                        class="form-control select2-multiple @error('subcategory_id') is-invalid @enderror"
+                                        id="subcategory_id" name="subcategory_id" value="{{ old('subcategory_id') }}"
+                                        data-toggle="select2" data-placeholder="Choose ..."required>
+                                        <optgroup>
+                                            <option value="">Choose..</option>
+                                        </optgroup>
+                                    </select>
+                                    @error('subcategory_id')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
@@ -210,6 +228,32 @@
 
         $('#amount, #qty').on('input', function() {
             calculateTotal();
+        });
+    </script>
+    <script>
+        // category to sub
+        $("#category_id").on("change", function() {
+            var ajaxId = $(this).val();
+            if (ajaxId) {
+                $.ajax({
+                    type: "GET",
+                    url: "{{ url('ajax-asset-subcategory') }}?category_id=" + ajaxId,
+                    success: function(res) {
+                        if (res) {
+                            $("#subcategory_id").empty();
+                            $("#subcategory_id").append('<option value="0">Choose...</option>');
+                            $.each(res, function(key, value) {
+                                $("#subcategory_id").append('<option value="' + key + '">' +
+                                    value + "</option>");
+                            });
+                        } else {
+                            $("#subcategory_id").empty();
+                        }
+                    },
+                });
+            } else {
+                $("#subcategory_id").empty();
+            }
         });
     </script>
 @endsection

@@ -8,6 +8,7 @@
             margin-bottom: 10px;
         }
     </style>
+    <link href="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ asset('public/backEnd') }}/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ asset('public/backEnd') }}/assets/libs/summernote/summernote-lite.min.css" rel="stylesheet"
         type="text/css" />
@@ -130,7 +131,9 @@
                                                 name="category_id" value="{{ old('category_id') }}" required>
                                                 <option value="">Select Category..</option>
                                                 @foreach ($pur_categories as $category)
-                                                    <option value="{{ $category->id }}" {{$purchase->category_id == $category->id ? 'selected' : ''}}>{{ $category->name }}</option>
+                                                    <option value="{{ $category->id }}"
+                                                        {{ $purchase->category_id == $category->id ? 'selected' : '' }}>
+                                                        {{ $category->name }}</option>
                                                 @endforeach
                                             </select>
                                             @error('category_id')
@@ -168,7 +171,9 @@
                                                 name="warehouse_id" value="{{ old('warehouse_id') }}" required>
                                                 <option value="">Select Warehouse..</option>
                                                 @foreach ($warehouses as $warehouse)
-                                                    <option value="{{ $warehouse->id }}" {{$warehouse->id == $purchase->warehouse_id ? 'selected' : ''}}>{{ $warehouse->name }}</option>
+                                                    <option value="{{ $warehouse->id }}"
+                                                        {{ $warehouse->id == $purchase->warehouse_id ? 'selected' : '' }}>
+                                                        {{ $warehouse->name }}</option>
                                                 @endforeach
                                             </select>
                                             @error('warehouse_id')
@@ -185,6 +190,19 @@
                                                 class="form-control @error('paid') is-invalid @enderror"
                                                 placeholder="Cash" name="paid" value="{{ $paid }}" required>
                                             @error('paid')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <!-- col-end -->
+                                    <div class="col-sm-12">
+                                        <div class="form-group mb-3">
+                                            <label for="order_date" class="form-label">Date*</label>
+                                            <input name="order_date" value="{{ $purchase->created_at ?? old('order_date') }}" required
+                                                class="form-control flatpickr @error('order_date') is-invalid @enderror">
+                                            @error('order_date')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
@@ -239,11 +257,17 @@
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-validation.init.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/libs/select2/js/select2.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-advanced.init.js"></script>
+    <script src="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.js"></script>
     <!-- Plugins js -->
     <script src="{{ asset('public/backEnd/') }}/assets/libs//summernote/summernote-lite.min.js"></script>
     <script>
         $(".summernote").summernote({
             placeholder: "Enter Your Text Here",
+        });
+        $(".flatpickr").flatpickr({
+            enableTime: true,
+            dateFormat: "Y-m-d H:i:S",
+            time_24hr: true,
         });
     </script>
 

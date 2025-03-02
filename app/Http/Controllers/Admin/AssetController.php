@@ -3,15 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssetSubcategory;
 use Illuminate\Http\Request;
 use App\Models\AssetCategory;
 use App\Models\Asset;
-use Toastr;
+use Brian2694\Toastr\Facades\Toastr;
 use File;
 use DB;
 class AssetController extends Controller
 {
-
+    public function getSubcategory(Request $request)
+    {
+        $subcategory = DB::table("asset_subcategories")
+            ->where("category_id", $request->category_id)
+            ->pluck('name', 'id');
+        return response()->json($subcategory);
+    }
     function __construct()
     {
         $this->middleware('permission:asset-list|asset-create|asset-edit|asset-delete', ['only' => ['index', 'store']]);
@@ -59,7 +66,8 @@ class AssetController extends Controller
     {
         $edit_data = Asset::find($id);
         $assetcategory = AssetCategory::select('id', 'name')->get();
-        return view('backEnd.asset.edit', compact('edit_data', 'assetcategory'));
+        $subcategories = AssetSubcategory::where('category_id', $edit_data->category_id)->get();
+        return view('backEnd.asset.edit', compact('edit_data', 'assetcategory', 'subcategories'));
     }
 
     public function update(Request $request)

@@ -947,6 +947,11 @@ class OrderController extends Controller
         if ($request->childcategory_id) {
             $products = $products->where('childcategory_id', $request->childcategory_id);
         }
+        if ($request->warehouse_id) {
+            $products = $products->whereHas('stocks', function ($query) use ($request) {
+                $query->where('warehouse_id', $request->warehouse_id);
+            });
+        }
         if ($request->start_date && $request->end_date) {
             $products = $products->whereBetween('created_at', [$request->start_date, $request->end_date]);
         }
@@ -954,6 +959,7 @@ class OrderController extends Controller
         $total_stock = $products->sum('stock');
         $total_price = $products->sum(\DB::raw('new_price * stock'));
         $products = $products->paginate(100);
+        // return $products;
         $categories = Category::where('status', 1)->get();
         $subcategories = [];
         if($request->category_id) {
@@ -963,7 +969,8 @@ class OrderController extends Controller
         if($request->subcategory_id) {
             $childcategories = Childcategory::where('subcategory_id', $request->subcategory_id)->get();
         }
-        return view('backEnd.reports.stock', compact('products', 'categories', 'total_purchase', 'total_stock', 'total_price', 'subcategories', 'childcategories'));
+        $warehouses = Warehouse::where('status', 1)->get();
+        return view('backEnd.reports.stock', compact('products', 'categories', 'total_purchase', 'total_stock', 'total_price', 'subcategories', 'childcategories', 'warehouses'));
     }
     public function warehouse_report(Request $request)
     {

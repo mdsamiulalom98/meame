@@ -382,6 +382,10 @@
                                         <a href="{{ route('admin.payment.index', ['user' => 'customer']) }}"><i
                                                 data-feather="file-plus"></i> Payment List</a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('customers.complaint') }}"><i
+                                                data-feather="file-plus"></i> Customer Complaints</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
@@ -442,6 +446,9 @@
                                 <ul class="nav-second-level">
                                     <li>
                                         <a href="{{ route('asset.categories.index') }}"><i data-feather="file-plus"></i> Asset Categories</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('asset.subcategories.index') }}"><i data-feather="file-plus"></i> Asset Subcategories</a>
                                     </li>
                                     <li>
                                         <a href="{{ route('asset.create') }}"><i data-feather="file-plus"></i> Asset Create</a>

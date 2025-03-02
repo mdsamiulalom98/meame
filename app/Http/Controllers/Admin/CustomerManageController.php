@@ -14,6 +14,8 @@ use Intervention\Image\Facades\Image;
 use App\Models\Customer;
 use App\Models\Transaction;
 use App\Models\IpBlock;
+use App\Models\CustomerComplaint;
+use App\Models\ComplaintImage;
 
 class CustomerManageController extends Controller
 {
@@ -25,6 +27,12 @@ class CustomerManageController extends Controller
         })->paginate(20);
 
         return view('backEnd.customer.index', compact('show_data'));
+    }
+
+    public function complaints(Request $request)
+    {
+        $show_data = CustomerComplaint::query()->paginate(20);
+        return view('backEnd.customer.complaints', compact('show_data'));
     }
 
     public function create()
@@ -154,6 +162,11 @@ class CustomerManageController extends Controller
         $profile = Customer::with('orders')->find($request->id);
         $transaction = Transaction::where(['user' => 'customer', 'user_id' => $profile->id])->orderBy('id', 'asc')->get();
         return view('backEnd.customer.profile', compact('profile', 'transaction'));
+    }
+    public function complaint_view($id)
+    {
+        $show_data = CustomerComplaint::find($id);
+        return view('backEnd.customer.complaint', compact('show_data'));
     }
     public function adminlog(Request $request)
     {

@@ -27,8 +27,8 @@ class PurchaseController extends Controller
         }
         $data = $data->paginate(50);
         $suppliers = Supplier::select('id', 'name', 'phone')->get();
-        
-        return view('backEnd.purchase.index', compact('data','suppliers'));
+
+        return view('backEnd.purchase.index', compact('data', 'suppliers'));
     }
     public function create()
     {
@@ -163,6 +163,7 @@ class PurchaseController extends Controller
         $purchase->category_id = $request->category_id;
         $purchase->status = 'final';
         $purchase->due = (($subtotal + $shipping) - $discount) - $request->paid;
+        $purchase->created_at = $request->order_date;
         $purchase->save();
 
         // supplier data save
@@ -208,16 +209,16 @@ class PurchaseController extends Controller
                 [
                     'product_id' => $cart->id,
                     'warehouse_id' => $request->warehouse_id,
-                    'stock' => $cart->qty, 
+                    'stock' => $cart->qty,
                 ]
             );
             // If the record already existed, increment the stock
             if (!$warehousestock->wasRecentlyCreated) {
                 $warehousestock->stock += $cart->qty;
             }
-            
+
             $warehousestock->save();
-            
+
             WarehouseTransfer::create([
                 'product_id' => $cart->id,
                 'stock' => $cart->qty,
@@ -241,7 +242,7 @@ class PurchaseController extends Controller
         return redirect('admin/purchase/manage');
     }
     public function purchase_edit($invoice_id)
-    { 
+    {
         $products = Product::select('id', 'name', 'product_code')->where(['status' => 1])->get();
         $suppliers = Supplier::select('id', 'name')->where(['status' => 1])->get();
         $purchase = Purchase::where('invoice_id', $invoice_id)->first();
@@ -261,13 +262,14 @@ class PurchaseController extends Controller
                 'price' => $purdetails->purchase_price,
                 'options' => [
                     'image' => $image->image,
-                    'retail_price' => $purdetails->retail_price,
-                    'whole_price' => $purdetails->whole_price,
+                    'old_price' => $purdetails->old_price,
+                    'new_price' => $purdetails->new_price,
                     'purchase_price' => $purdetails->purchase_price,
                     'product_discount' => $purdetails->product_discount,
                     'pid' => $purdetails->purchase_id,
                 ],
             ]);
+
         }
         $cartinfo = Cart::instance('purchase')->content();
         return view('backEnd.purchase.edit', compact('products', 'cartinfo', 'purchase', 'suppliers', 'warehouses', 'pur_categories'));
@@ -286,7 +288,6 @@ class PurchaseController extends Controller
 
         // order data save
         $purchase = Purchase::where('id', $request->id)->first();
-        ;
         $purchase->amount = ($subtotal + $shipping) - $discount;
         $purchase->discount = $discount ? $discount : 0;
         $purchase->category_id = $request->category_id;
@@ -296,6 +297,7 @@ class PurchaseController extends Controller
         $purchase->paid = $request->paid;
         $purchase->status = 'final';
         $purchase->due = (($subtotal + $shipping) - $discount) - $request->paid;
+        $purchase->created_at = $request->order_date;
         $purchase->save();
 
         // purchase details data save
@@ -304,21 +306,21 @@ class PurchaseController extends Controller
             if ($exits) {
                 $purchase_details = PurchaseDetails::where('id', $cart->options->pid)->first();
                 $purchase_details->purchase_price = $cart->price;
-                $purchase_details->retail_price = $cart->options->retail_price;
-                $purchase_details->whole_price = $cart->options->whole_price;
+                $purchase_details->new_price = $cart->options->new_price;
+                $purchase_details->old_price = $cart->options->old_price;
                 $purchase_details->product_discount = $cart->options->product_discount;
                 $purchase_details->quantity = $cart->qty;
                 $purchase_details->save();
             } else {
                 $purchase_details = new PurchaseDetails();
                 $purchase_details->purchase_id = $purchase->id;
-                $purchase_details->product_id = $cart->id;
                 $purchase_details->product_name = $cart->name;
                 $purchase_details->purchase_price = $cart->price;
-                $purchase_details->retail_price = $cart->options->retail_price;
-                $purchase_details->whole_price = $cart->options->whole_price;
                 $purchase_details->product_discount = $cart->options->product_discount;
                 $purchase_details->quantity = $cart->qty;
+                $purchase_details->product_id = $cart->id;
+                $purchase_details->new_price = $cart->options->new_price;
+                $purchase_details->old_price = $cart->options->old_price;
                 $purchase_details->save();
             }
             // product update

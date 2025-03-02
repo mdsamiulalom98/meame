@@ -31,10 +31,11 @@
                             <input type="hidden" value="{{ $edit_data->id }}" name="id">
 
 
-                            <div class="col-sm-12">
+                            <div class="col-sm-6">
                                 <div class="form-group mb-3">
                                     <label for="category_id" class="form-label">Category *</label>
-                                    <select class="form-control select2-multiple @error('category_id') is-invalid @enderror"
+                                    <select
+                                        class="form-control form-select select2-multiple @error('category_id') is-invalid @enderror"
                                         id="category_id" name="category_id" value="{{ old('category_id') }}"
                                         data-placeholder="Choose ..."required>
                                         <optgroup>
@@ -47,6 +48,30 @@
                                         </optgroup>
                                     </select>
                                     @error('category_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <!-- col end -->
+                            <div class="col-sm-6">
+                                <div class="form-group mb-3">
+                                    <label for="subcategory_id" class="form-label">Subcategory *</label>
+                                    <select
+                                        class="form-control select2-multiple @error('subcategory_id') is-invalid @enderror"
+                                        id="subcategory_id" name="subcategory_id" value="{{ old('subcategory_id') }}"
+                                        data-toggle="select2" data-placeholder="Choose ..."required>
+
+                                        <option value="">Choose..</option>
+                                        @foreach ($subcategories as $key => $value)
+                                            <option value="{{ $value->id }}"
+                                                @if ($value->id == $edit_data->subcategory_id) selected @endif>{{ $value->name }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                    @error('subcategory_id')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
@@ -112,8 +137,9 @@
                             <div class="col-sm-12">
                                 <div class="form-group mb-3">
                                     <label for="date" class="form-label">date</label>
-                                    <input type="date" class="form-control flatpickr @error('date') is-invalid @enderror"
-                                        name="date" value="{{ $edit_data->date }}" id="date">
+                                    <input type="date"
+                                        class="form-control flatpickr @error('date') is-invalid @enderror" name="date"
+                                        value="{{ $edit_data->date }}" id="date">
                                     @error('date')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -207,4 +233,30 @@
         document.forms["editForm"].elements["category_id"].value = "{{ $edit_data->category_id }}";
     </script>
     <!-- /.content -->
+    <script>
+        // category to sub
+        $("#category_id").on("change", function() {
+            var ajaxId = $(this).val();
+            if (ajaxId) {
+                $.ajax({
+                    type: "GET",
+                    url: "{{ url('ajax-asset-subcategory') }}?category_id=" + ajaxId,
+                    success: function(res) {
+                        if (res) {
+                            $("#subcategory_id").empty();
+                            $("#subcategory_id").append('<option value="0">Choose...</option>');
+                            $.each(res, function(key, value) {
+                                $("#subcategory_id").append('<option value="' + key + '">' +
+                                    value + "</option>");
+                            });
+                        } else {
+                            $("#subcategory_id").empty();
+                        }
+                    },
+                });
+            } else {
+                $("#subcategory_id").empty();
+            }
+        });
+    </script>
 @endsection

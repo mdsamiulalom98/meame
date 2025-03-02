@@ -11,6 +11,7 @@
     <link href="{{ asset('public/backEnd') }}/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
     <link href="{{ asset('public/backEnd') }}/assets/libs/summernote/summernote-lite.min.css" rel="stylesheet"
         type="text/css" />
+    <link href="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.css" rel="stylesheet" type="text/css" />
 @endsection
 @section('content')
     <div class="container-fluid">
@@ -86,7 +87,7 @@
                                                             <button class="minus cart_decrement"
                                                                 value="{{ $value->qty }}"
                                                                 data-id="{{ $value->rowId }}">-</button>
-                                                            <input type="text" value="{{ $value->qty }}"  />
+                                                            <input type="text" value="{{ $value->qty }}" />
                                                             <button class="plus cart_increment" value="{{ $value->qty }}"
                                                                 data-id="{{ $value->rowId }}">+</button>
                                                         </div>
@@ -179,9 +180,22 @@
                                     <div class="col-sm-12">
                                         <div class="form-group mb-2">
                                             <input type="number" id="paid"
-                                                class="form-control @error('paid') is-invalid @enderror" placeholder="Cash"
-                                                name="paid" value="{{ $paid }}" required>
+                                                class="form-control @error('paid') is-invalid @enderror"
+                                                placeholder="Cash" name="paid" value="{{ $paid }}" required>
                                             @error('paid')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <!-- col-end -->
+                                    <div class="col-sm-12">
+                                        <div class="form-group mb-3">
+                                            <label for="order_date" class="form-label">Date*</label>
+                                            <input name="order_date" value="{{ old('order_date') }}" required
+                                                class="form-control flatpickr @error('order_date') is-invalid @enderror">
+                                            @error('order_date')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
@@ -219,6 +233,7 @@
                                     </tbody>
                                 </table>
                             </div>
+
                             <div>
                                 <input type="submit" class="btn btn-success" value="Purchase Submit" />
                             </div>
@@ -237,11 +252,18 @@
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-validation.init.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/libs/select2/js/select2.min.js"></script>
     <script src="{{ asset('public/backEnd/') }}/assets/js/pages/form-advanced.init.js"></script>
+    <script src="{{ asset('public/backEnd') }}/assets/libs/flatpickr/flatpickr.min.js"></script>
     <!-- Plugins js -->
     <script src="{{ asset('public/backEnd/') }}/assets/libs//summernote/summernote-lite.min.js"></script>
     <script>
         $(".summernote").summernote({
             placeholder: "Enter Your Text Here",
+        });
+        $(".flatpickr").flatpickr({
+            enableTime: true,
+            dateFormat: "Y-m-d H:i:S",
+            time_24hr: true,
+            defaultDate: new Date(),
         });
     </script>
 

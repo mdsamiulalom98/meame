@@ -81,7 +81,6 @@ class ExpenseController extends Controller
     public function edit($id)
     {
         $edit_data = Expense::find($id);
-        // return $edit_data;
         $categories = ExpenseCategories::select('id','name')->get();
         $subcategories = ExpenseSubcategory::where('category_id', $edit_data->expense_cat_id)->get();
         $warehouses = Warehouse::where('status', 1)->get();

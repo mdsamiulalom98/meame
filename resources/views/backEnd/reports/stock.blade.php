@@ -121,6 +121,25 @@
                                 </div>
                             </div>
                             <!-- col end -->
+                            <div class="col-sm-2">
+                                <div class="form-group mb-3">
+                                    <label for="warehouse_id" class="form-label">Warehouse</label>
+                                    <select class="form-control form-select @error('warehouse_id') is-invalid @enderror"
+                                        id="warehouse_id" name="warehouse_id" data-placeholder="Choose ...">
+                                        <optgroup>
+                                            <option value="">Select..</option>
+                                            @foreach ($warehouses as $key => $value)
+                                            <option value="{{ $value->id }}" @if (request()->get('warehouse_id') == $value->id) selected @endif>{{ $value->name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    </select>
+                                    @error('warehouse_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
                             <!-- col end -->
                             <div class="col-sm-2">
                                 <div class="form-group">
