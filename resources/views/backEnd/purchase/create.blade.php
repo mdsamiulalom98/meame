@@ -47,7 +47,7 @@
                                         <option value="">Select..</option>
                                         @foreach ($products as $value)
                                             <option value="{{ $value->id }}">{{ $value->name }} -
-                                                {{ $value->purchase_price }}</option>
+                                                {{ $value->purchase_price }} (Current Stock: {{ $value->stock }})</option>
                                         @endforeach
                                     </select>
                                     @error('product_id')

@@ -4,7 +4,7 @@
  @foreach ($cartinfo as $key => $value)
      <tr>
          <td><img height="30" src="{{ asset($value->options->image) }}"></td>
-         <td>{{ $value->name }} 2</td>
+         <td>{{ $value->name }}</td>
          <td>
              <div class="qty-cart vcart-qty">
                  <div class="quantity">

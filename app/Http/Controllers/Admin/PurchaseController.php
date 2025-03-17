@@ -4,19 +4,20 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Suppot\Facades\Session;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Brian2694\Toastr\Facades\Toastr;
+use App\Models\WarehouseTransfer;
 use App\Models\PurchaseCategory;
-use App\Models\Purchase;
 use App\Models\PurchaseDetails;
-use App\Models\Product;
-use App\Models\Supplier;
+use App\Models\WarehouseStock;
 use App\Models\Transaction;
 use App\Models\Warehouse;
-use App\Models\WarehouseStock;
-use App\Models\WarehouseTransfer;
-use Session;
-use DB;
+use App\Models\Purchase;
+use App\Models\Supplier;
+use App\Models\Product;
+
 class PurchaseController extends Controller
 {
     public function index(Request $request)
@@ -32,7 +33,7 @@ class PurchaseController extends Controller
     }
     public function create()
     {
-        $products = Product::select('id', 'name', 'new_price', 'purchase_price', 'product_code')->where(['status' => 1])->get();
+        $products = Product::select('id', 'name', 'new_price', 'purchase_price', 'product_code', 'stock')->where(['status' => 1])->get();
         $suppliers = Supplier::select('id', 'name')->where(['status' => 1])->get();
         $warehouses = Warehouse::select('id', 'name')->get();
         $pur_categories = PurchaseCategory::select('id', 'name')->get();
@@ -154,7 +155,7 @@ class PurchaseController extends Controller
         $purchase = new Purchase();
         $purchase->invoice_id = str_pad(($last_id ? $last_id + 1 : 1), 6, '0', STR_PAD_LEFT);
         $purchase->amount = ($subtotal + $shipping) - $discount;
-        $purchase->discount = $discount ? $discount : 0;
+        $purchase->discount = $discount ?? 0;
         $purchase->category_id = $request->category_id;
         $purchase->supplier_id = $request->supplier_id;
         $purchase->warehouse_id = $request->warehouse_id;
@@ -243,7 +244,7 @@ class PurchaseController extends Controller
     }
     public function purchase_edit($invoice_id)
     {
-        $products = Product::select('id', 'name', 'product_code')->where(['status' => 1])->get();
+        $products = Product::select('id', 'name', 'product_code', 'purchase_price', 'stock')->where(['status' => 1])->get();
         $suppliers = Supplier::select('id', 'name')->where(['status' => 1])->get();
         $purchase = Purchase::where('invoice_id', $invoice_id)->first();
         $warehouses = Warehouse::select('id', 'name')->get();
@@ -269,8 +270,8 @@ class PurchaseController extends Controller
                     'pid' => $purdetails->purchase_id,
                 ],
             ]);
-
         }
+
         $cartinfo = Cart::instance('purchase')->content();
         return view('backEnd.purchase.edit', compact('products', 'cartinfo', 'purchase', 'suppliers', 'warehouses', 'pur_categories'));
     }
@@ -409,18 +410,17 @@ class PurchaseController extends Controller
         if ($request->start_date && $request->end_date) {
             $data = $data->whereBetween('updated_at', [$request->start_date, $request->end_date]);
         }
-        $total_purchase = $data->sum(\DB::raw('purchase_price * quantity'));
+        $total_purchase = $data->sum(DB::raw('purchase_price * quantity'));
         $total_item = $data->sum('quantity');
         $data = $data->paginate(100);
         return view('backEnd.reports.purchase_details', compact('data', 'suppliers', 'total_purchase', 'total_item'));
     }
     public function supplier_ledger(Request $request)
     {
-        if ($request->keyword) {
-            $show_data = Supplier::orWhere('phone', $request->keyword)->orWhere('name', $request->keyword)->paginate(20);
-        } else {
-            $show_data = Supplier::paginate(20);
-        }
+        $show_data = Supplier::when($request->keyword, function ($query, $keyword) {
+            $query->where('phone', $keyword)->orWhere('name', 'LIKE', "%$keyword%");
+        })->paginate(20);
+
         return view('backEnd.reports.supplier_ledger', compact('show_data'));
     }
 }

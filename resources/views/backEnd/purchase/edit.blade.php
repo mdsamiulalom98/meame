@@ -1,5 +1,5 @@
 @extends('backEnd.layouts.master')
-@section('title', 'Purchase Create')
+@section('title', 'Purchase Edit')
 @section('css')
     <style>
         .increment_btn,
@@ -26,7 +26,7 @@
                                     class="fas fa-trash-alt"></i> Cart Clear</button>
                         </form>
                     </div>
-                    <h4 class="page-title">Purchase Create</h4>
+                    <h4 class="page-title">Purchase Edit</h4>
                 </div>
             </div>
         </div>
@@ -48,7 +48,7 @@
                                         <option value="">Select..</option>
                                         @foreach ($products as $value)
                                             <option value="{{ $value->id }}">{{ $value->name }} -
-                                                {{ $value->retail_price }} , {{ $value->whole_price }}</option>
+                                                {{ $value->purchase_price }} (Current Stock: {{ $value->stock }})</option>
                                         @endforeach
                                     </select>
                                     @error('product_id')
@@ -88,7 +88,7 @@
                                                             <button class="minus cart_decrement"
                                                                 value="{{ $value->qty }}"
                                                                 data-id="{{ $value->rowId }}">-</button>
-                                                            <input type="text" value="{{ $value->qty }}" readonly />
+                                                            <input type="text" value="{{ $value->qty }}"  />
                                                             <button class="plus cart_increment" value="{{ $value->qty }}"
                                                                 data-id="{{ $value->rowId }}">+</button>
                                                         </div>
