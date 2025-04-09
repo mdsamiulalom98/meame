@@ -64,7 +64,8 @@ class OrderController extends Controller
         return response()->json($products);
     }
 
-    public function office_orders() {
+    public function office_orders()
+    {
         $show_data = Order::where('order_type', 0)->paginate(100);
         // return $show_data;
         $order_status = OrderStatus::where(['slug' => 'delivered'])->withCount('orders')->first();
@@ -163,24 +164,24 @@ class OrderController extends Controller
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post($pathao_info->url . '/api/v1/orders', [
-                'store_id' => $request->pathaostore,
-                'merchant_order_id' => $order->invoice_id,
-                'sender_name' => 'Test',
-                'sender_phone' => $order->shipping ? $order->shipping->phone : '',
-                'recipient_name' => $order->shipping ? $order->shipping->name : '',
-                'recipient_phone' => $order->shipping ? $order->shipping->phone : '',
-                'recipient_address' => $order->shipping ? $order->shipping->address : '',
-                'recipient_city' => $request->pathaocity,
-                'recipient_zone' => $request->pathaozone,
-                'recipient_area' => $request->pathaoarea,
-                'delivery_type' => 48,
-                'item_type' => 2,
-                'special_instruction' => 'Special note- product must be check after delivery',
-                'item_quantity' => $order_count,
-                'item_weight' => 0.5,
-                'amount_to_collect' => round($order->amount),
-                'item_description' => 'Special note- product must be check after delivery',
-            ]);
+                        'store_id' => $request->pathaostore,
+                        'merchant_order_id' => $order->invoice_id,
+                        'sender_name' => 'Test',
+                        'sender_phone' => $order->shipping ? $order->shipping->phone : '',
+                        'recipient_name' => $order->shipping ? $order->shipping->name : '',
+                        'recipient_phone' => $order->shipping ? $order->shipping->phone : '',
+                        'recipient_address' => $order->shipping ? $order->shipping->address : '',
+                        'recipient_city' => $request->pathaocity,
+                        'recipient_zone' => $request->pathaozone,
+                        'recipient_area' => $request->pathaoarea,
+                        'delivery_type' => 48,
+                        'item_type' => 2,
+                        'special_instruction' => 'Special note- product must be check after delivery',
+                        'item_quantity' => $order_count,
+                        'item_weight' => 0.5,
+                        'amount_to_collect' => round($order->amount),
+                        'item_description' => 'Special note- product must be check after delivery',
+                    ]);
         }
         if ($response->status() == '200') {
             $order->order_status = 4;
@@ -634,6 +635,8 @@ class OrderController extends Controller
     {
         $product = Product::select('id', 'name', 'stock', 'new_price', 'old_price', 'purchase_price', 'slug')->where(['id' => $request->id])->first();
         $qty = 1;
+        $warehouse_id = Session::get('warehouse_id', 0);
+        $warehouse_stock = WarehouseStock::where(['product_id' => $request->id, 'warehouse_id' => $warehouse_id])->first();
         $cartinfo = Cart::instance('pos_shopping')->add([
             'id' => $product->id,
             'name' => $product->name,
@@ -645,6 +648,7 @@ class OrderController extends Controller
                 'old_price' => $product->old_price,
                 'purchase_price' => $product->purchase_price,
                 'product_discount' => 0,
+                'warehouse_stock'=> $warehouse_stock->stock ?? 0
             ],
         ]);
         return response()->json(compact('cartinfo'));
@@ -693,7 +697,8 @@ class OrderController extends Controller
                 'old_price' => $cart->options->old_price,
                 'purchase_price' => $cart->options->purchase_price,
                 'product_discount' => $request->discount,
-                'details_id' => $cart->options->details_id
+                'details_id' => $cart->options->details_id,
+                'warehouse_stock' => $cart->options->warehouse_stock,
             ],
         ]);
         return response()->json($cartinfo);
@@ -732,8 +737,10 @@ class OrderController extends Controller
         Session::put('cpaid', $order->paid);
         Session::put('additional_shipping', $order->additional_shipping);
         Session::put('old_due', $order->customer->due ?? 0);
+        $warehouse_id = Session::get('warehouse_id');
         $orderdetails = OrderDetails::where('order_id', $order->id)->get();
         foreach ($orderdetails as $ordetails) {
+            $product = WarehouseStock::where(['product_id' => $ordetails->product_id, 'warehouse_id' => $warehouse_id])->first();
             $cartinfo = Cart::instance('pos_shopping')->add([
                 'id' => $ordetails->product_id,
                 'name' => $ordetails->product_name,
@@ -744,6 +751,7 @@ class OrderController extends Controller
                     'purchase_price' => $ordetails->purchase_price,
                     'product_discount' => $ordetails->product_discount,
                     'details_id' => $ordetails->id,
+                    'warehouse_stock' => $product->stock ?? 0,
                 ],
             ]);
         }
@@ -962,11 +970,11 @@ class OrderController extends Controller
         // return $products;
         $categories = Category::where('status', 1)->get();
         $subcategories = [];
-        if($request->category_id) {
+        if ($request->category_id) {
             $subcategories = Subcategory::where('category_id', $request->category_id)->get();
         }
         $childcategories = [];
-        if($request->subcategory_id) {
+        if ($request->subcategory_id) {
             $childcategories = Childcategory::where('subcategory_id', $request->subcategory_id)->get();
         }
         $warehouses = Warehouse::where('status', 1)->get();
@@ -994,7 +1002,7 @@ class OrderController extends Controller
         $products = Product::where('status', 1)->get();
         $warehouses = Warehouse::where('status', 1)->get();
 
-        return view('backEnd.reports.warehouse', compact('stocks','products', 'warehouses'));
+        return view('backEnd.reports.warehouse', compact('stocks', 'products', 'warehouses'));
     }
     public function expense_report(Request $request)
     {
@@ -1075,10 +1083,33 @@ class OrderController extends Controller
         Session::put('additional_shipping', $amount);
         return response()->json($amount);
     }
-    public function customer_select(Request $request) {
+    public function customer_select(Request $request)
+    {
         $customer = Customer::where('id', $request->id)->first();
         $due = $customer->due ?? 0;
         Session::put('old_due', $due);
         return response()->json($customer);
+    }
+    public function purchase_select_warehouse(Request $request)
+    {
+        Session::put('warehouse_id', $request->id);
+        $warehouse_id = Session::get('warehouse_id');
+        $carts = Cart::instance('pos_shopping')->content();
+
+        foreach ($carts as $cart) {
+            $product = WarehouseStock::where(['product_id' => $cart->id, 'warehouse_id' => $warehouse_id])->first();
+            Cart::instance('pos_shopping')->update($cart->rowId, [
+                'options' => [
+                    'slug' => $cart->options->slug,
+                    'image' => $cart->options->image,
+                    'old_price' => $cart->options->old_price,
+                    'new_price' => $cart->options->new_price,
+                    'product_discount' => $cart->options->discount ?? 0,
+                    'warehouse_stock' => $product->stock ?? 0
+                ],
+            ]);
+        }
+
+        return response()->json(['warehouse_id' => $warehouse_id]);
     }
 }

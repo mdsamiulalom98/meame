@@ -132,6 +132,7 @@
                                             <th style="width:15%">Sell Price</th>
                                             <th style="width:15%">Discount</th>
                                             <th style="width:15%">Sub Total</th>
+                                            <th style="width: 15%">Warehouse Stock</th>
                                             <th style="width:15%">Action</th>
                                         </tr>
                                     </thead>
@@ -171,7 +172,8 @@
                                                 name="warehouse_id" required>
                                                 <option value="">Select Warehouse....</option>
                                                 @foreach ($warehouses as $key => $value)
-                                                    <option {{ $value->id == $order->warehouse_id ? 'selected' : '' }} value="{{ $value->id }}">{{ $value->name }}</option>
+                                                    <option {{ $value->id == $order->warehouse_id ? 'selected' : '' }}
+                                                        value="{{ $value->id }}">{{ $value->name }}</option>
                                                 @endforeach
 
                                             </select>
@@ -189,7 +191,8 @@
                                                 name="customer_id" required>
                                                 <option value="">Select Customer ...</option>
                                                 @foreach ($customers as $key => $value)
-                                                    <option  {{ $value->id == $order->customer_id ? 'selected' : '' }}  value="{{ $value->id }}">{{ $value->name }} -
+                                                    <option {{ $value->id == $order->customer_id ? 'selected' : '' }}
+                                                        value="{{ $value->id }}">{{ $value->name }} -
                                                         {{ $value->phone }}</option>
                                                 @endforeach
 
@@ -487,5 +490,117 @@
                 }
             });
         });
+    </script>
+    <script>
+        // category to sub
+        $("#category_id").on("change", function() {
+            var ajaxId = $(this).val();
+            if (ajaxId) {
+                $.ajax({
+                    type: "GET",
+                    url: "{{ url('ajax-product-subcategory') }}?category_id=" + ajaxId,
+                    success: function(res) {
+                        if (res) {
+                            $("#subcategory_id").empty();
+                            $("#subcategory_id").append('<option value="0">Choose...</option>');
+                            $.each(res, function(key, value) {
+                                $("#subcategory_id").append('<option value="' + key + '">' +
+                                    value + "</option>");
+                            });
+                        } else {
+                            $("#subcategory_id").empty();
+                        }
+                    },
+                });
+                return product_query();
+            } else {
+                $("#subcategory_id").empty();
+            }
+        });
+
+        // subcategory to childcategory
+        $("#subcategory_id").on("change", function() {
+            var ajaxId = $(this).val();
+            if (ajaxId) {
+                $.ajax({
+                    type: "GET",
+                    url: "{{ url('ajax-product-childcategory') }}?subcategory_id=" + ajaxId,
+                    success: function(res) {
+                        if (res) {
+                            $("#childcategory_id").empty();
+                            $("#childcategory_id").append('<option value="0">Choose...</option>');
+                            $.each(res, function(key, value) {
+                                $("#childcategory_id").append('<option value="' + key + '">' +
+                                    value + "</option>");
+                            });
+                        } else {
+                            $("#childcategory_id").empty();
+                        }
+                    },
+                });
+                return product_query();
+            } else {
+                $("#childcategory_id").empty();
+            }
+        });
+        // subcategory to childcategory
+        $("#childcategory_id").on("change", function() {
+            var ajaxId = $(this).val();
+            if (ajaxId) {
+                return product_query();
+            } else {
+                $("#childcategory_id").empty();
+            }
+        });
+
+
+        $("#product_id").on("change", function(e) {
+            var id = $(this).val();
+            console.log(id);
+            if (id) {
+                $.ajax({
+                    cache: "false",
+                    type: "GET",
+                    data: {
+                        id: id
+                    },
+                    url: "{{ route('admin.order.cart_add') }}",
+                    dataType: "json",
+                    success: function(cartinfo) {
+                        return cart_content() + cart_details() + search_clear();
+                        $('#category_id').val('');
+                        $('#subcategory_id').val('');
+                        $('#childcategory_id').val('');
+                    },
+                });
+            }
+        });
+
+        function product_query() {
+            var category = $("#category_id").val();
+            var subcategory = $("#subcategory_id").val();
+            var childcategory = $("#childcategory_id").val();
+            $.ajax({
+                type: "GET",
+                data: {
+                    category: category,
+                    subcategory: subcategory,
+                    childcategory: childcategory,
+                },
+                url: "{{ route('admin.livesearch') }}",
+                success: function(res) {
+                    if (res) {
+                        $("#product_id").empty();
+                        $("#product_id").append('<option value="0">Choose...</option>');
+                        $.each(res, function(key, value) {
+                            $("#product_id").append('<option value="' + key + '">' +
+                                value + "</option>");
+                        });
+                    } else {
+                        $("#product_id").empty();
+                    }
+                },
+            });
+        }
     </script>
 @endsection

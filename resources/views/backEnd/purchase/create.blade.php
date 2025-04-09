@@ -69,6 +69,7 @@
                                             <th style="width:15%">Sell Price</th>
                                             <th style="width:15%">Discount</th>
                                             <th style="width:15%">Sub Total</th>
+                                            <th style="width: 15%">Warehouse Stock</th>
                                             <th style="width:15%">Action</th>
                                         </tr>
                                         </tr>
@@ -100,6 +101,7 @@
                                                 </td>
                                                 <td>{{ ($value->price - $value->options->product_discount) * $value->qty }}
                                                     Tk</td>
+                                                    <td>{{ $value->options->warehouse_stock ?? 0 }}</td>
                                                 <td><button type="button" class="btn btn-danger btn-xs cart_remove"
                                                         data-id="{{ $value->rowId }}"><i class="fa fa-times"></i></button>
                                                 </td>
@@ -305,6 +307,23 @@
                         'id': id
                     },
                     url: "{{ route('purchase.add') }}",
+                    dataType: "json",
+                    success: function(cartinfo) {
+                        return cart_content() + cart_details();
+                    }
+                });
+            }
+        });
+        $('#warehouse_id').on('change', function(e) {
+            var id = $(this).val();
+            if (id) {
+                $.ajax({
+                    cache: 'false',
+                    type: "GET",
+                    data: {
+                        'id': id
+                    },
+                    url: "{{ route('purchase.warehouse.select') }}",
                     dataType: "json",
                     success: function(cartinfo) {
                         return cart_content() + cart_details();

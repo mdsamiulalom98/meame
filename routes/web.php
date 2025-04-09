@@ -340,6 +340,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::get('purchase-details', [PurchaseController::class, 'purchase_details'])->name('purchase.details');
     Route::get('purchase-details', [PurchaseController::class, 'purchase_details'])->name('purchase.details');
     Route::get('supplier-ledger', [PurchaseController::class, 'supplier_ledger'])->name('admin.sledger_report');
+    Route::get('purchase/select/warehouse', [PurchaseController::class, 'purchase_select_warehouse'])->name('purchase.warehouse.select');
 
     // collection
     Route::get('payment/index', [PaymentController::class, 'index'])->name('admin.payment.index');
@@ -543,6 +544,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::post('order/cart-clear', [OrderController::class, 'cart_clear'])->name('admin.order.cart_clear');
     Route::get('order/paid', [OrderController::class, 'order_paid'])->name('admin.order.paid');
     Route::get('order/additional-shipping', [OrderController::class, 'additional_shipping'])->name('admin.order.additional_shipping');
+    Route::get('order/select/warehouse', [OrderController::class, 'order_select_warehouse'])->name('order.warehouse.select');
 
     // Order route
     Route::get('office/orders', [OrderController::class, 'office_orders'])->name('admin.office.orders');

@@ -133,6 +133,7 @@
                                             <th style="width: 15%;">Sell Price</th>
                                             <th style="width: 15%;">Discount</th>
                                             <th style="width: 15%;">Sub Total</th>
+                                            <th style="width: 15%">Warehouse Stock</th>
                                             <th style="width: 15%;">Action</th>
                                         </tr>
                                     </thead>

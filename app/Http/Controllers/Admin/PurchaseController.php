@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Suppot\Facades\Session;
+use Illuminate\Support\Facades\Session;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Brian2694\Toastr\Facades\Toastr;
 use App\Models\WarehouseTransfer;
@@ -44,12 +44,15 @@ class PurchaseController extends Controller
         Session::forget('shipping');
         Session::forget('discount');
         Session::forget('paid');
+        Session::forget('warehouse_id');
         return view('backEnd.purchase.create', compact('products', 'cartinfo', 'suppliers', 'warehouses', 'pur_categories'));
     }
     public function cart_add(Request $request)
     {
         $product = DB::table('products')->where(['id' => $request->id])->select('id', 'slug', 'name', 'new_price', 'old_price', 'purchase_price', 'product_code')->first();
         $image = DB::table('productimages')->where('product_id', $request->id)->select('product_id', 'image')->first();
+        $warehouse_id = Session::get('warehouse_id', 0);
+        $warehouse_stock = WarehouseStock::where(['product_id' => $request->id, 'warehouse_id' => $warehouse_id])->first();
         $qty = 1;
         $cartinfo = Cart::instance('purchase')->add([
             'id' => $product->id,
@@ -60,6 +63,7 @@ class PurchaseController extends Controller
                 'image' => $image->image,
                 'old_price' => $product->old_price,
                 'new_price' => $product->new_price,
+                'warehouse_stock'=> $warehouse_stock->stock ?? 0
             ],
         ]);
         return response()->json(compact('cartinfo'));
@@ -250,12 +254,15 @@ class PurchaseController extends Controller
         $warehouses = Warehouse::select('id', 'name')->get();
         $pur_categories = PurchaseCategory::select('id', 'name')->get();
         Session::put('paid', $purchase->paid);
+        Session::put('warehouse_id', $purchase->warehouse_id ?? 0);
+        $warehouse_id = Session::get('warehouse_id');
         $cartinfo = Cart::instance('purchase')->destroy();
         Session::put('product_discount', $purchase->discount);
         $purchasedetails = PurchaseDetails::where('purchase_id', $purchase->id)->get();
         //return $purchasedetails;
         foreach ($purchasedetails as $purdetails) {
             $image = DB::table('productimages')->select('image', 'product_id')->where('product_id', $purdetails->product_id)->first();
+            $product = WarehouseStock::where(['product_id' => $purdetails->product_id, 'warehouse_id' => $warehouse_id])->first();
             $cartinfo = Cart::instance('purchase')->add([
                 'id' => $purdetails->product_id,
                 'name' => $purdetails->product->name,
@@ -268,6 +275,7 @@ class PurchaseController extends Controller
                     'purchase_price' => $purdetails->purchase_price,
                     'product_discount' => $purdetails->product_discount,
                     'pid' => $purdetails->purchase_id,
+                    'warehouse_stock'=> $product->stock ?? 0
                 ],
             ]);
         }
@@ -422,5 +430,28 @@ class PurchaseController extends Controller
         })->paginate(20);
 
         return view('backEnd.reports.supplier_ledger', compact('show_data'));
+    }
+
+    public function purchase_select_warehouse(Request $request)
+    {
+        Session::put('warehouse_id', $request->id);
+        $warehouse_id = Session::get('warehouse_id');
+        $carts = Cart::instance('purchase')->content();
+
+        foreach ($carts as $cart) {
+            $product = WarehouseStock::where(['product_id' => $cart->id, 'warehouse_id' => $warehouse_id])->first();
+            Cart::instance('purchase')->update($cart->rowId, [
+                'options' => [
+                    'slug' => $cart->options->slug,
+                    'image' => $cart->options->image,
+                    'old_price' => $cart->options->old_price,
+                    'new_price' => $cart->options->new_price,
+                    'product_discount' => $cart->options->discount ?? 0,
+                    'warehouse_stock'=> $product->stock ?? 0
+                ],
+            ]);
+        }
+
+        return response()->json(['warehouse_id' => $warehouse_id]);
     }
 }

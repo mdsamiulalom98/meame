@@ -70,6 +70,7 @@
                                             <th style="width:15%">Sell Price</th>
                                             <th style="width:15%">Discount</th>
                                             <th style="width:15%">Sub Total</th>
+                                            <th style="width: 15%">Warehouse Stock</th>
                                             <th style="width:15%">Action</th>
                                         </tr>
                                         </tr>
@@ -88,7 +89,7 @@
                                                             <button class="minus cart_decrement"
                                                                 value="{{ $value->qty }}"
                                                                 data-id="{{ $value->rowId }}">-</button>
-                                                            <input type="text" value="{{ $value->qty }}"  />
+                                                            <input type="text" value="{{ $value->qty }}" />
                                                             <button class="plus cart_increment" value="{{ $value->qty }}"
                                                                 data-id="{{ $value->rowId }}">+</button>
                                                         </div>
@@ -101,6 +102,7 @@
                                                 </td>
                                                 <td>{{ ($value->price - $value->options->product_discount) * $value->qty }}
                                                     Tk</td>
+                                                <td>{{ $value->options->warehouse_stock ?? 0 }}</td>
                                                 <td><button type="button" class="btn btn-danger btn-xs cart_remove"
                                                         data-id="{{ $value->rowId }}"><i class="fa fa-times"></i></button>
                                                 </td>
@@ -200,7 +202,8 @@
                                     <div class="col-sm-12">
                                         <div class="form-group mb-3">
                                             <label for="order_date" class="form-label">Date*</label>
-                                            <input name="order_date" value="{{ $purchase->created_at ?? old('order_date') }}" required
+                                            <input name="order_date"
+                                                value="{{ $purchase->created_at ?? old('order_date') }}" required
                                                 class="form-control flatpickr @error('order_date') is-invalid @enderror">
                                             @error('order_date')
                                                 <span class="invalid-feedback" role="alert">
@@ -309,6 +312,23 @@
                         'id': id
                     },
                     url: "{{ route('purchase.add') }}",
+                    dataType: "json",
+                    success: function(cartinfo) {
+                        return cart_content() + cart_details();
+                    }
+                });
+            }
+        });
+        $('#warehouse_id').on('change', function(e) {
+            var id = $(this).val();
+            if (id) {
+                $.ajax({
+                    cache: 'false',
+                    type: "GET",
+                    data: {
+                        'id': id
+                    },
+                    url: "{{ route('purchase.warehouse.select') }}",
                     dataType: "json",
                     success: function(cartinfo) {
                         return cart_content() + cart_details();

@@ -20,6 +20,7 @@
                 value="{{ $value->options->product_discount }}" placeholder="0.00" data-id="{{ $value->rowId }}" />
         </td>
         <td>{{ ($value->price - $value->options->product_discount) * $value->qty }}</td>
+        <td>{{ $value->options->warehouse_stock ?? 0 }}</td>
         <td>
             <button type="button" class="btn btn-danger btn-xs cart_remove" data-id="{{ $value->rowId }}"><i
                     class="fa fa-times"></i></button>
